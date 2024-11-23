@@ -53,15 +53,22 @@ local function findNearestGem()
     local closestGem = nil
     local closestDistance = math.huge
 
-    -- Search specifically within the Potions folder for "Gem" objects
+    -- Debug: Log all children in the Potions folder
+    print("Checking for gems...")
     for _, obj in pairs(potionsFolder:GetChildren()) do
-        -- Ensure the object is valid, has a ProximityPrompt, and is named "Gem"
-        local proximityPrompt = obj:FindFirstChildOfClass("ProximityPrompt")
-        if obj and proximityPrompt and obj:IsA("BasePart") and obj.Name == "Gem" then
-            local distance = (character.PrimaryPart.Position - obj.Position).Magnitude
-            if distance < closestDistance then
-                closestDistance = distance
-                closestGem = obj
+        print("Found object:", obj.Name, obj.ClassName)
+
+        -- Gems may be Models containing parts
+        if obj.Name == "Gem" then
+            local proximityPrompt = obj:FindFirstChildOfClass("ProximityPrompt") or obj:FindFirstChildWhichIsA("ProximityPrompt", true) -- Search recursively
+            local gemPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true) -- Get the BasePart inside Models
+
+            if proximityPrompt and gemPart then
+                local distance = (character.PrimaryPart.Position - gemPart.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestGem = gemPart
+                end
             end
         end
     end
@@ -88,7 +95,7 @@ local function collectGem()
                 local distanceCheck = humanoid.MoveToFinished:Wait()
                 if distanceCheck and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
                     -- Find and trigger the ProximityPrompt
-                    local proximityPrompt = gem:FindFirstChildOfClass("ProximityPrompt")
+                    local proximityPrompt = gem.Parent:FindFirstChildOfClass("ProximityPrompt") or gem:FindFirstChildOfClass("ProximityPrompt")
                     if proximityPrompt then
                         proximityPrompt:InputHoldBegin() -- Begin interaction
                         wait(0.5) -- Simulate hold duration (adjust as needed)
@@ -97,7 +104,7 @@ local function collectGem()
                 end
             else
                 -- Wait and retry if no gem is found
-                wait(10)  -- Increased retry time to 10 seconds
+                wait(10) -- Increased retry time to 10 seconds
             end
         end)
 
