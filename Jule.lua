@@ -9,7 +9,7 @@ local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame",
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Prism",
-    "Nebula", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", "Gladiator",
+    "Nebula", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", "GLADIATOR",
     "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", "Acceleration",
     "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
 }
