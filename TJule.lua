@@ -1,175 +1,74 @@
--- Function to fetch the player's inventory auras
-local function getInventoryAuras()
-    local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
-    local success, inventoryAuras = pcall(function()
-        return remotes:WaitForChild("RequestAuras"):InvokeServer()
-    end)
-    if success then
-        print("Successfully fetched inventory auras.")
-        return inventoryAuras or {}
-    else
-        warn("Failed to fetch inventory auras.")
-        return {}
-    end
-end
+-- LocalScript
 
--- Function to delete duplicate auras
-local function deleteDuplicateAuras()
-    local inventoryAuras = getInventoryAuras()
-    local auraCounts = {}
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
-    -- Count occurrences of each aura
-    for _, aura in pairs(inventoryAuras) do
-        auraCounts[aura] = (auraCounts[aura] or 0) + 1
-    end
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local toggle = false
 
-    -- Check and delete duplicates
-    for _, auraName in ipairs(aurasToDelete) do
-        if auraCounts[auraName] and auraCounts[auraName] > 1 then
-            local excess = auraCounts[auraName] - 1
-            print("Deleting " .. excess .. " excess copies of " .. auraName)
-            game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(auraName, tostring(excess))
+-- Keybind to toggle the script
+local toggleKey = Enum.KeyCode.E
+
+-- Function to find the nearest gem
+local function findNearestGem()
+    local closestGem = nil
+    local shortestDistance = math.huge
+    local characterPosition = character.PrimaryPart.Position
+
+    for _, gem in pairs(workspace:GetDescendants()) do
+        if gem:IsA("BasePart") and gem.Name == "Gem" then
+            local distance = (gem.Position - characterPosition).Magnitude
+            if distance < shortestDistance then
+                closestGem = gem
+                shortestDistance = distance
+            end
         end
     end
+
+    return closestGem
 end
 
--- Auras to delete
-local aurasToDelete = {
-    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
-    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
-    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
-    "Nebula", "Iridescent", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", 
-    "GLADIATOR", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
-    "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
-}
-local isScriptActive = false
+-- Function to move to the gem
+local function moveToGem(gem)
+    if not gem or not character.PrimaryPart then return end
+    local humanoidMoveTo = humanoid:MoveTo(gem.Position)
+    
+    -- Wait until the player reaches the gem
+    local reached = humanoid.MoveToFinished:Wait()
+    if reached and gem:FindFirstChild("ProximityPrompt") then
+        -- Fire the ProximityPrompt to "pick up" the Gem
+        fireproximityprompt(gem.ProximityPrompt)
+    end
+end
 
--- Toggle script behavior
+-- Toggle function
 local function toggleScript()
-    isScriptActive = not isScriptActive
+    toggle = not toggle
+
+    if toggle then
+        print("Gem Collector Activated")
+        while toggle do
+            local nearestGem = findNearestGem()
+            if nearestGem then
+                moveToGem(nearestGem)
+            else
+                print("No gems found!")
+                break
+            end
+            RunService.Heartbeat:Wait()
+        end
+    else
+        print("Gem Collector Deactivated")
+    end
 end
 
--- Main loop for processing auras and deleting duplicates
-task.spawn(function()
-    while true do
-        task.wait(0.1)
-        if isScriptActive then
-            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
-            deleteDuplicateAuras()
-        end
-    end
-end)
-
--- GUI Creation
-local gui = Instance.new("ScreenGui")
-gui.Parent = game:GetService("CoreGui") -- Prevent unloading on reset
-gui.Name = "AuraControlGUI"
-
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-mainFrame.Draggable = true
-mainFrame.Active = true
-mainFrame.Visible = true
-mainFrame.Parent = gui
-
--- Header with hide button
-local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 40)
-header.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-header.Parent = mainFrame
-
-local hideButton = Instance.new("TextButton")
-hideButton.Size = UDim2.new(0, 30, 0, 30)
-hideButton.Position = UDim2.new(1, -35, 0, 5)
-hideButton.Text = "X"
-hideButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
-hideButton.Parent = header
-
-local showButton = Instance.new("TextButton")
-showButton.Size = UDim2.new(0, 50, 0, 50)
-showButton.Position = UDim2.new(0, 10, 0, 10)
-showButton.Text = "+"
-showButton.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
-showButton.Draggable = true
-showButton.Visible = false
-showButton.Parent = gui
-
-hideButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    hideButton.Visible = false
-    showButton.Visible = true
-end)
-
-showButton.MouseButton1Click:Connect(function()
-    mainFrame.Visible = true
-    hideButton.Visible = true
-    showButton.Visible = false
-end)
-
--- Script toggle button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0.9, 0, 0, 40)
-toggleButton.Position = UDim2.new(0.05, 0, 0, 50)
-toggleButton.Text = "Toggle Script: OFF"
-toggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3) -- Default to red (OFF)
-toggleButton.Parent = mainFrame
-
-toggleButton.MouseButton1Click:Connect(function()
-    toggleScript()
-    toggleButton.Text = "Toggle Script: " .. (isScriptActive and "ON" or "OFF")
-    toggleButton.BackgroundColor3 = isScriptActive and Color3.new(0.3, 0.8, 0.3) or Color3.new(0.8, 0.3, 0.3)
-end)
-
--- Aura management TextBox and buttons
-local auraTextbox = Instance.new("TextBox")
-auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
-auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
-auraTextbox.PlaceholderText = "Input Aura Name Here"
-auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
-auraTextbox.Parent = mainFrame
-
-local addButton = Instance.new("TextButton")
-addButton.Size = UDim2.new(0.45, -5, 0, 40)
-addButton.Position = UDim2.new(0.05, 0, 0, 150)
-addButton.Text = "Add Aura"
-addButton.BackgroundColor3 = Color3.new(0.3, 0.5, 0.8)
-addButton.Parent = mainFrame
-
-local removeButton = Instance.new("TextButton")
-removeButton.Size = UDim2.new(0.45, -5, 0, 40)
-removeButton.Position = UDim2.new(0.5, 5, 0, 150)
-removeButton.Text = "Remove Aura"
-removeButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
-removeButton.Parent = mainFrame
-
-local auraListLabel = Instance.new("TextLabel")
-auraListLabel.Size = UDim2.new(0.9, 0, 0, 150)
-auraListLabel.Position = UDim2.new(0.05, 0, 0, 200)
-auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
-auraListLabel.TextWrapped = true
-auraListLabel.TextYAlignment = Enum.TextYAlignment.Top
-auraListLabel.BackgroundTransparency = 1
-auraListLabel.TextColor3 = Color3.new(1, 1, 1)
-auraListLabel.Parent = mainFrame
-
--- Add/Remove buttons functionality
-addButton.MouseButton1Click:Connect(function()
-    if auraTextbox.Text ~= "" then
-        table.insert(aurasToDelete, auraTextbox.Text)
-        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
-        auraTextbox.Text = ""
-    end
-end)
-
-removeButton.MouseButton1Click:Connect(function()
-    for i, aura in ipairs(aurasToDelete) do
-        if aura == auraTextbox.Text then
-            table.remove(aurasToDelete, i)
-            auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
-            auraTextbox.Text = ""
-            break
-        end
+-- Keybind listener
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == toggleKey then
+        toggleScript()
     end
 end)
