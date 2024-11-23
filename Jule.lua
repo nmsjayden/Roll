@@ -40,7 +40,7 @@ end)
 
 -- GUI Creation
 local gui = Instance.new("ScreenGui")
-gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+gui.Parent = game:GetService("CoreGui") -- Prevent unloading on reset
 gui.Name = "AuraControlGUI"
 
 local mainFrame = Instance.new("Frame")
@@ -49,6 +49,7 @@ mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
 mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 mainFrame.Draggable = true
 mainFrame.Active = true
+mainFrame.Visible = true
 mainFrame.Parent = gui
 
 -- Header with Hide Button
@@ -69,6 +70,7 @@ showButton.Size = UDim2.new(0, 50, 0, 50)
 showButton.Position = UDim2.new(0, 10, 0, 10)
 showButton.Text = "+"
 showButton.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
+showButton.Draggable = true
 showButton.Visible = false
 showButton.Parent = gui
 
@@ -102,7 +104,7 @@ end)
 local auraTextbox = Instance.new("TextBox")
 auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
 auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
-auraTextbox.PlaceholderText = "Enter Aura Name"
+auraTextbox.PlaceholderText = "Type an Aura Here"
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = mainFrame
 
