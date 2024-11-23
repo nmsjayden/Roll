@@ -114,10 +114,9 @@ local function teleportToPotionAndInteract(potionType)
     end
 end
 
--- Retry the potion search every 10 seconds and count uninteracted potions
-local function retryPotionSearch()
+-- Function to constantly update the count of uninteracted potions
+local function updatePotionCount()
     while toggleActive do
-        wait(10) -- Retry searching for potions every 10 seconds
         local gemCount = 0
         local speedCount = 0
         local ultimateCount = 0
@@ -141,15 +140,18 @@ local function retryPotionSearch()
             end
         end
 
-        -- Update and print the number of uninteracted potions only if it has changed
+        -- Update the potion count label and print the counts in the console
         local currentCount = gemCount .. " Gems, " .. speedCount .. " Speed, " .. ultimateCount .. " Ultimate"
         if currentCount ~= lastPrintedCount then
             uninteractedGemsCount = gemCount
             uninteractedSpeedCount = speedCount
             uninteractedUltimateCount = ultimateCount
             potionCountLabel.Text = "Uninteracted Potions: " .. currentCount -- Update the label text
+            print("Uninteracted Potions - " .. currentCount) -- Optionally print in console for debugging
             lastPrintedCount = currentCount
         end
+
+        wait(1) -- Constantly update every second
     end
 end
 
@@ -162,7 +164,7 @@ toggleButton.MouseButton1Click:Connect(function()
         teleportToPotionAndInteract("Gem")
         teleportToPotionAndInteract("Speed")
         teleportToPotionAndInteract("Ultimate")
-        retryPotionSearch() -- Start retrying potion search every 10 seconds
+        updatePotionCount() -- Start updating potion count constantly
     else
         toggleButton.Text = "Toggle Potion Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
@@ -199,4 +201,14 @@ maximizeButton.InputChanged:Connect(function(input)
         maximizeButton.Position = UDim2.new(
             startPos.X.Scale,
             startPos.X.Offset + delta.X,
-            startPos.Y.Scale
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+maximizeButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
