@@ -99,10 +99,14 @@ local function teleportToPotionAndInteract(potionType)
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
                     -- Trigger the ProximityPrompt interaction as quickly as possible
-                    prompt:InputHoldBegin()
-                    prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
-                    interacted = true
-                    break
+                    if prompt then
+                        pcall(function()
+                            prompt:InputHoldBegin()
+                            prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
+                        end)
+                        interacted = true
+                        break
+                    end
                 end
             end
 
@@ -191,19 +195,14 @@ maximizeButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
-        startPos = maximizeButton.Position
+        startPos = mainFrame.Position
     end
 end)
 
 maximizeButton.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
         local delta = input.Position - dragStart
-        maximizeButton.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end)
 
