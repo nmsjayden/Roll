@@ -21,7 +21,8 @@ local function findNearestGem()
     local closestDistance = math.huge
 
     for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("BasePart") and obj.Name == "Gem" then -- Assuming Gems are BasePart instances named "Gem"
+        -- Ensure obj is valid and has the IsA method
+        if obj and obj:IsA("BasePart") and obj.Name == "Gem" then -- Assuming Gems are BasePart instances named "Gem"
             local distance = (character.PrimaryPart.Position - obj.Position).Magnitude
             if distance < closestDistance then
                 closestDistance = distance
@@ -29,27 +30,46 @@ local function findNearestGem()
             end
         end
     end
+
+    if closestGem then
+        print("Successfully found a gem!")
+    else
+        print("No gems found. Retrying in 5 seconds...")
+    end
+
     return closestGem
 end
 
 -- Function to walk to and interact with a gem
 local function collectGem()
     while toggleActive do
-        local gem = findNearestGem()
-        if gem then
-            -- Walk to the gem
-            humanoid:MoveTo(gem.Position)
+        local success, errorMessage = pcall(function()
+            local gem = findNearestGem()
+            if gem then
+                -- Walk to the gem
+                humanoid:MoveTo(gem.Position)
 
-            -- Wait until near the gem
-            local distanceCheck = humanoid.MoveToFinished:Wait()
-            if distanceCheck and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
-                -- Simulate interaction
-                firetouchinterest(character.PrimaryPart, gem, 0) -- Begin touch
-                wait(0.1)
-                firetouchinterest(character.PrimaryPart, gem, 1) -- End touch
+                -- Wait until near the gem
+                local distanceCheck = humanoid.MoveToFinished:Wait()
+                if distanceCheck and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
+                    -- Simulate interaction
+                    firetouchinterest(character.PrimaryPart, gem, 0) -- Begin touch
+                    wait(0.1)
+                    firetouchinterest(character.PrimaryPart, gem, 1) -- End touch
+                end
+            else
+                -- Wait and retry if no gem is found
+                wait(5)
             end
+        end)
+
+        if not success then
+            -- Handle any errors gracefully
+            print("Error during gem collection: " .. errorMessage)
+            wait(5) -- Retry after a delay
         end
-        wait(0.5) -- Wait before trying again
+
+        wait(0.5) -- Wait briefly before checking again
     end
 end
 
