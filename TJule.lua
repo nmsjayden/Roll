@@ -1,4 +1,29 @@
--- Original Script Functionality
+local DataStoreService = game:GetService("DataStoreService")
+local playerDataStore = DataStoreService:GetDataStore("AuraDataStore")
+
+local function saveAuras(player, auras)
+    local success, error = pcall(function()
+        playerDataStore:SetAsync(tostring(player.UserId), auras) -- Save auras with the player's UserId
+    end)
+    if not success then
+        warn("Failed to save auras for " .. player.Name .. ": " .. error)
+    end
+end
+
+local function loadAuras(player)
+    local auras = {}
+    local success, result = pcall(function()
+        return playerDataStore:GetAsync(tostring(player.UserId)) -- Retrieve saved auras using the player's UserId
+    end)
+    if success and result then
+        auras = result
+    else
+        warn("Failed to load auras for " .. player.Name)
+    end
+    return auras
+end
+
+-- Script Functionality
 local function processAuras()
     local r = game:GetService("ReplicatedStorage")
     local f = r:FindFirstChild("Auras")
@@ -9,26 +34,13 @@ local function processAuras()
     end
 end
 
-local aurasToDelete = {
-    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
-    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
-    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
-    "Nebula", "Iridescent", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", 
-    "GLADIATOR", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
-    "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
-}
+local aurasToDelete = {}
 local isScriptActive = false
 local amountToDelete = "6"
-local autoExecuteOnTeleport = false -- Variable for teleport toggle
 
 -- Script Toggle Behavior
 local function toggleScript()
     isScriptActive = not isScriptActive
-end
-
--- Auto Execute on Teleport Behavior
-local function toggleAutoExecuteOnTeleport()
-    autoExecuteOnTeleport = not autoExecuteOnTeleport
 end
 
 task.spawn(function()
@@ -50,8 +62,8 @@ gui.Parent = game:GetService("CoreGui") -- Prevent unloading on reset
 gui.Name = "AuraControlGUI"
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 450)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -225)
+mainFrame.Size = UDim2.new(0, 300, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
 mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 mainFrame.Draggable = true
 mainFrame.Active = true
@@ -106,38 +118,24 @@ toggleButton.MouseButton1Click:Connect(function()
     toggleButton.BackgroundColor3 = isScriptActive and Color3.new(0.3, 0.8, 0.3) or Color3.new(0.8, 0.3, 0.3)
 end)
 
--- Auto Execute on Teleport Toggle
-local teleportToggleButton = Instance.new("TextButton")
-teleportToggleButton.Size = UDim2.new(0.9, 0, 0, 40)
-teleportToggleButton.Position = UDim2.new(0.05, 0, 0, 100)
-teleportToggleButton.Text = "Auto Execute on Teleport: OFF"
-teleportToggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3) -- Default to red (OFF)
-teleportToggleButton.Parent = mainFrame
-
-teleportToggleButton.MouseButton1Click:Connect(function()
-    toggleAutoExecuteOnTeleport()
-    teleportToggleButton.Text = "Auto Execute on Teleport: " .. (autoExecuteOnTeleport and "ON" or "OFF")
-    teleportToggleButton.BackgroundColor3 = autoExecuteOnTeleport and Color3.new(0.3, 0.8, 0.3) or Color3.new(0.8, 0.3, 0.3)
-end)
-
 -- Aura Management Textbox and Buttons
 local auraTextbox = Instance.new("TextBox")
 auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
-auraTextbox.Position = UDim2.new(0.05, 0, 0, 150)
+auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
 auraTextbox.PlaceholderText = "Input Aura Name Here"  -- Updated placeholder text
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = mainFrame
 
 local addButton = Instance.new("TextButton")
 addButton.Size = UDim2.new(0.45, -5, 0, 40)
-addButton.Position = UDim2.new(0.05, 0, 0, 200)
+addButton.Position = UDim2.new(0.05, 0, 0, 150)
 addButton.Text = "Add Aura"
 addButton.BackgroundColor3 = Color3.new(0.3, 0.5, 0.8)
 addButton.Parent = mainFrame
 
 local removeButton = Instance.new("TextButton")
 removeButton.Size = UDim2.new(0.45, -5, 0, 40)
-removeButton.Position = UDim2.new(0.5, 5, 0, 200)
+removeButton.Position = UDim2.new(0.5, 5, 0, 150)
 removeButton.Text = "Remove Aura"
 removeButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
 removeButton.Parent = mainFrame
@@ -145,7 +143,7 @@ removeButton.Parent = mainFrame
 -- Aura List
 local auraListLabel = Instance.new("TextLabel")
 auraListLabel.Size = UDim2.new(0.9, 0, 0, 150)
-auraListLabel.Position = UDim2.new(0.05, 0, 0, 250)
+auraListLabel.Position = UDim2.new(0.05, 0, 0, 200)
 auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
 auraListLabel.TextWrapped = true
 auraListLabel.TextYAlignment = Enum.TextYAlignment.Top
@@ -157,4 +155,29 @@ auraListLabel.Parent = mainFrame
 addButton.MouseButton1Click:Connect(function()
     if auraTextbox.Text ~= "" then
         table.insert(aurasToDelete, auraTextbox.Text)
-        aura
+        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+        auraTextbox.Text = ""
+        saveAuras(game.Players.LocalPlayer, aurasToDelete) -- Save updated auras
+    end
+end)
+
+removeButton.MouseButton1Click:Connect(function()
+    for i, aura in ipairs(aurasToDelete) do
+        if aura == auraTextbox.Text then
+            table.remove(aurasToDelete, i)
+            auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+            auraTextbox.Text = ""
+            saveAuras(game.Players.LocalPlayer, aurasToDelete) -- Save updated auras
+            break
+        end
+    end
+end)
+
+-- Load saved auras when the player joins
+game.Players.PlayerAdded:Connect(function(player)
+    local savedAuras = loadAuras(player)
+    if savedAuras then
+        aurasToDelete = savedAuras
+        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+    end
+end)
