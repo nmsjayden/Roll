@@ -48,6 +48,9 @@ maximizeButton.Parent = screenGui
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
+-- Counter for uninteracted gems
+local uninteractedGemsCount = 0
+
 -- Function to find the nearest gem
 local function findNearestGem()
     local closestGem = nil
@@ -66,44 +69,64 @@ local function findNearestGem()
         end
     end
 
-    if closestGem then
-        print("Nearest Gem found at position:", closestGem.Position)
-    else
-        print("No Gems found nearby.")
-    end
-
     return closestGem
 end
 
--- Function to teleport to the gem and interact with its ProximityPrompt quickly
+-- Function to teleport to the gem and instantly interact with its ProximityPrompt
 local function teleportToGemAndInteract()
     while toggleActive do
-        local success, errorMessage = pcall(function()
-            local gem = findNearestGem()
-            if gem then
-                -- Teleport to the Gem's position, slightly raised to avoid colliding with the ground
-                local newPosition = gem.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the Gem's position
-                character:SetPrimaryPartCFrame(CFrame.new(newPosition))
+        local gem = findNearestGem()
+        if gem then
+            -- Teleport to the Gem's position, slightly raised to avoid colliding with the ground
+            local newPosition = gem.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the Gem's position
+            character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-                -- Immediately check for and interact with a ProximityPrompt near the Gem
-                for _, prompt in pairs(workspace:GetDescendants()) do
-                    if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
-                        print("Interacting with ProximityPrompt near Gem!")
-                        prompt:InputHoldBegin()
-                        prompt:InputHoldEnd()  -- Immediately trigger the interaction without delays
-                        break
+            -- Immediately interact with a ProximityPrompt near the Gem
+            local interacted = false
+            for _, prompt in pairs(workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+                    -- Trigger the ProximityPrompt interaction as quickly as possible
+                    prompt:InputHoldBegin()
+                    prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
+                    interacted = true
+                    break
+                end
+            end
+
+            if interacted then
+                print("Successfully interacted with the ProximityPrompt!")
+            else
+                print("No ProximityPrompt found nearby.")
+            end
+        else
+            print("No Gem to teleport to. Waiting for next retry...")
+        end
+        wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
+    end
+end
+
+-- Retry the gem search every 10 seconds and count uninteracted gems
+local function retryGemSearch()
+    while toggleActive do
+        wait(10) -- Retry searching for gems every 10 seconds
+        local gemCount = 0
+
+        -- Count all gems that are not interacted with (not yet triggered by ProximityPrompt)
+        for _, obj in pairs(potionsFolder:GetChildren()) do
+            if obj:IsA("Model") and obj.Name == "Gem" then
+                local gemPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if gemPart then
+                    local distance = (character.PrimaryPart.Position - gemPart.Position).Magnitude
+                    if distance < 10 then
+                        gemCount = gemCount + 1
                     end
                 end
-            else
-                print("No Gem to teleport to. Retrying in 10 seconds...")
             end
-        end)
-
-        if not success then
-            print("Error during teleportation or interaction: " .. errorMessage)
         end
 
-        wait(10) -- Retry every 10 seconds
+        -- Update and print the number of uninteracted gems
+        uninteractedGemsCount = gemCount
+        print("Uninteracted gems in the game: " .. uninteractedGemsCount)
     end
 end
 
@@ -114,6 +137,7 @@ toggleButton.MouseButton1Click:Connect(function()
         toggleButton.Text = "Toggle Gem Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
         teleportToGemAndInteract()
+        retryGemSearch() -- Start retrying gem search every 10 seconds
     else
         toggleButton.Text = "Toggle Gem Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
