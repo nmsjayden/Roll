@@ -1,4 +1,4 @@
--- Parent this script to StarterPlayerScripts or similar
+-- Ensure compatibility with executors
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
@@ -6,7 +6,8 @@ local humanoid = character:WaitForChild("Humanoid")
 local toggleActive = false
 
 -- Create GUI
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui") -- Explicitly parent to PlayerGui for executor support
 
 -- Main GUI container
 local mainFrame = Instance.new("Frame")
@@ -14,7 +15,7 @@ mainFrame.Size = UDim2.new(0, 220, 0, 80)
 mainFrame.Position = UDim2.new(0.5, -110, 0.5, -40) -- Centered on screen
 mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 mainFrame.Active = true
-mainFrame.Draggable = true -- Make the GUI movable
+mainFrame.Draggable = true -- Main GUI is draggable
 mainFrame.Visible = true
 mainFrame.Parent = screenGui
 
@@ -134,13 +135,13 @@ maximizeButton.MouseButton1Click:Connect(function()
     maximizeButton.Visible = false
 end)
 
--- Make the maximize (+) button draggable for mobile
+-- Custom drag functionality for the maximize (+) button
 local dragging = false
 local dragStart = nil
 local startPos = nil
 
 maximizeButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch then
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = maximizeButton.Position
@@ -148,14 +149,19 @@ maximizeButton.InputBegan:Connect(function(input)
 end)
 
 maximizeButton.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.Touch then
+    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
         local delta = input.Position - dragStart
-        maximizeButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        maximizeButton.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end
 end)
 
 maximizeButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch then
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
     end
 end)
