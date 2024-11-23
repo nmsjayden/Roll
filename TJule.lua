@@ -48,73 +48,36 @@ maximizeButton.Parent = screenGui
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Function to find nearest gem
-local function findNearestGem()
-    local closestGem = nil
-    local closestDistance = math.huge
-
-    -- Debug: Log all children in the Potions folder
-    print("Checking for gems...")
-    for _, obj in pairs(potionsFolder:GetChildren()) do
-        print("Found object:", obj.Name, obj.ClassName)
-
-        -- Gems may be Models containing parts
-        if obj.Name == "Gem" then
-            local proximityPrompt = obj:FindFirstChildOfClass("ProximityPrompt") or obj:FindFirstChildWhichIsA("ProximityPrompt", true) -- Search recursively
-            local gemPart = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart", true) -- Get the BasePart inside Models
-
-            if proximityPrompt and gemPart then
-                local distance = (character.PrimaryPart.Position - gemPart.Position).Magnitude
-                if distance < closestDistance then
-                    closestDistance = distance
-                    closestGem = gemPart
-                end
-            end
-        end
-    end
-
-    if closestGem then
-        print("Successfully found a gem!")
-    else
-        print("No gems found. Retrying in 10 seconds...")
-    end
-
-    return closestGem
-end
-
--- Function to walk to and interact with a gem using ProximityPrompt
-local function collectGem()
+-- Function to find and interact with nearby ProximityPrompts
+local function interactWithNearbyPrompts()
     while toggleActive do
         local success, errorMessage = pcall(function()
-            local gem = findNearestGem()
-            if gem then
-                -- Walk to the gem
-                humanoid:MoveTo(gem.Position)
-
-                -- Wait until near the gem
-                local distanceCheck = humanoid.MoveToFinished:Wait()
-                if distanceCheck and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
-                    -- Find and trigger the ProximityPrompt
-                    local proximityPrompt = gem.Parent:FindFirstChildOfClass("ProximityPrompt") or gem:FindFirstChildOfClass("ProximityPrompt")
-                    if proximityPrompt then
-                        proximityPrompt:InputHoldBegin() -- Begin interaction
-                        wait(0.5) -- Simulate hold duration (adjust as needed)
-                        proximityPrompt:InputHoldEnd() -- End interaction
+            for _, obj in pairs(potionsFolder:GetChildren()) do
+                if obj:IsA("Model") and obj.Name == "Gem" then
+                    -- Check proximity between the player and the Gem
+                    local gemPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                    if gemPart and (character.PrimaryPart.Position - gemPart.Position).Magnitude < 10 then -- Adjust the distance as needed
+                        -- Find a ProximityPrompt nearby
+                        for _, prompt in pairs(workspace:GetDescendants()) do
+                            if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+                                -- Trigger the ProximityPrompt
+                                print("Interacting with ProximityPrompt near Gem!")
+                                prompt:InputHoldBegin()
+                                wait(0.5) -- Simulate interaction time
+                                prompt:InputHoldEnd()
+                                break
+                            end
+                        end
                     end
                 end
-            else
-                -- Wait and retry if no gem is found
-                wait(10) -- Increased retry time to 10 seconds
             end
         end)
 
         if not success then
-            -- Handle any errors gracefully
-            print("Error during gem collection: " .. errorMessage)
-            wait(10) -- Retry after a delay
+            print("Error during interaction: " .. errorMessage)
         end
 
-        wait(0.5) -- Wait briefly before checking again
+        wait(10) -- Retry every 10 seconds
     end
 end
 
@@ -124,7 +87,7 @@ toggleButton.MouseButton1Click:Connect(function()
     if toggleActive then
         toggleButton.Text = "Toggle Gem Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-        collectGem()
+        interactWithNearbyPrompts()
     else
         toggleButton.Text = "Toggle Gem Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
