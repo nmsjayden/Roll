@@ -49,7 +49,7 @@ maximizeButton.Parent = screenGui
 local potionCountLabel = Instance.new("TextLabel")
 potionCountLabel.Size = UDim2.new(0, 200, 0, 60)
 potionCountLabel.Position = UDim2.new(0, 10, 0, 70) -- Position below the toggle button
-potionCountLabel.Text = "Gems: 0\nSpeed Potion: 0\nUltimate Potion: 0"
+potionCountLabel.Text = "Gems: 0\nSpeed Potion: 0\nUltimate Potion: 0\nLuck Potion: 0"
 potionCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 potionCountLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 potionCountLabel.BackgroundTransparency = 0.5
@@ -58,18 +58,19 @@ potionCountLabel.Parent = mainFrame
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Counter for interacted potions
+-- Counter for interacted items
 local interactedGemsCount = 0
 local interactedSpeedPotionCount = 0
 local interactedUltimatePotionCount = 0
+local interactedLuckPotionCount = 0
 
--- Function to find the nearest gem
+-- Function to find the nearest item (Gem, Speed Potion, Ultimate Potion, Luck Potion)
 local function findNearestPotion(potionType)
     local closestPotion = nil
     local closestDistance = math.huge
 
     for _, obj in pairs(potionsFolder:GetChildren()) do
-        if obj:IsA("Model") and (obj.Name == "Gem" or obj.Name == "speed_potion" or obj.Name == "ultimate_potion") then
+        if obj:IsA("Model") and (obj.Name == "Gem" or obj.Name == "speed_potion" or obj.Name == "ultimate_potion" or obj.Name == "luck_potion") then
             local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
             if potionPart then
                 local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
@@ -112,6 +113,8 @@ local function teleportToPotionAndInteract(potionType)
                 interactedSpeedPotionCount = interactedSpeedPotionCount + 1
             elseif potionType == "Ultimate Potion" then
                 interactedUltimatePotionCount = interactedUltimatePotionCount + 1
+            elseif potionType == "Luck Potion" then
+                interactedLuckPotionCount = interactedLuckPotionCount + 1
             end
 
             if interacted then
@@ -122,15 +125,16 @@ local function teleportToPotionAndInteract(potionType)
     end
 end
 
--- Retry the gem/potion search every 10 seconds and count uninteracted items
+-- Retry the potion search every 10 seconds and count uninteracted items
 local function retryPotionSearch()
     while toggleActive do
         wait(10) -- Retry searching for items every 10 seconds
         local gemCount = 0
         local speedPotionCount = 0
         local ultimatePotionCount = 0
+        local luckPotionCount = 0
 
-        -- Count all uninteracted gems, speed potions, and ultimate potions
+        -- Count all uninteracted items
         for _, obj in pairs(potionsFolder:GetChildren()) do
             if obj:IsA("Model") then
                 local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
@@ -143,6 +147,8 @@ local function retryPotionSearch()
                             speedPotionCount = speedPotionCount + 1
                         elseif obj.Name == "ultimate_potion" then
                             ultimatePotionCount = ultimatePotionCount + 1
+                        elseif obj.Name == "luck_potion" then
+                            luckPotionCount = luckPotionCount + 1
                         end
                     end
                 end
@@ -152,8 +158,9 @@ local function retryPotionSearch()
         -- Update and print the number of uninteracted items
         potionCountLabel.Text = "Gems: " .. interactedGemsCount ..
                                 "\nSpeed Potion: " .. interactedSpeedPotionCount ..
-                                "\nUltimate Potion: " .. interactedUltimatePotionCount
-        print("Uninteracted Gems: " .. gemCount .. ", Speed Potions: " .. speedPotionCount .. ", Ultimate Potions: " .. ultimatePotionCount)
+                                "\nUltimate Potion: " .. interactedUltimatePotionCount ..
+                                "\nLuck Potion: " .. interactedLuckPotionCount
+        print("Uninteracted Gems: " .. gemCount .. ", Speed Potions: " .. speedPotionCount .. ", Ultimate Potions: " .. ultimatePotionCount .. ", Luck Potions: " .. luckPotionCount)
     end
 end
 
@@ -166,6 +173,7 @@ toggleButton.MouseButton1Click:Connect(function()
         teleportToPotionAndInteract("Gem")
         teleportToPotionAndInteract("Speed Potion")
         teleportToPotionAndInteract("Ultimate Potion")
+        teleportToPotionAndInteract("Luck Potion")
         retryPotionSearch() -- Start retrying potion search every 10 seconds
     else
         toggleButton.Text = "Toggle Gem Collector (Off)"
