@@ -11,8 +11,8 @@ screenGui.Parent = player:WaitForChild("PlayerGui") -- Explicitly parent to Play
 
 -- Main GUI container
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 80)
-mainFrame.Position = UDim2.new(0.5, -110, 0.5, -40) -- Centered on screen
+mainFrame.Size = UDim2.new(0, 220, 0, 120) -- Increased height to accommodate gem count
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -60) -- Centered on screen
 mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 mainFrame.Active = true
 mainFrame.Draggable = true -- Main GUI is draggable
@@ -45,11 +45,22 @@ maximizeButton.Visible = false
 maximizeButton.Active = true
 maximizeButton.Parent = screenGui
 
+-- Gem Count TextLabel
+local gemCountLabel = Instance.new("TextLabel")
+gemCountLabel.Size = UDim2.new(0, 200, 0, 40)
+gemCountLabel.Position = UDim2.new(0, 10, 0, 70) -- Position below the toggle button
+gemCountLabel.Text = "Uninteracted Gems: 0"
+gemCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+gemCountLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+gemCountLabel.BackgroundTransparency = 0.5
+gemCountLabel.Parent = mainFrame
+
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
 -- Counter for uninteracted gems
 local uninteractedGemsCount = 0
+local lastPrintedCount = -1 -- Variable to track the last printed count to avoid spamming
 
 -- Function to find the nearest gem
 local function findNearestGem()
@@ -120,9 +131,12 @@ local function retryGemSearch()
             end
         end
 
-        -- Update and print the number of uninteracted gems
-        uninteractedGemsCount = gemCount
-        print("Uninteracted gems in the game: " .. uninteractedGemsCount)
+        -- Update and print the number of uninteracted gems only if it has changed
+        if gemCount ~= lastPrintedCount then
+            uninteractedGemsCount = gemCount
+            gemCountLabel.Text = "Uninteracted Gems: " .. uninteractedGemsCount -- Update the label text
+            lastPrintedCount = gemCount
+        end
     end
 end
 
