@@ -7,7 +7,7 @@ local toggleActive = false
 
 -- Create GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Parent = player:WaitForChild("PlayerGui") -- Explicitly parent to PlayerGui for executor support
+screenGui.Parent = game:GetService("CoreGui") -- Parent to CoreGui to prevent reset issues
 
 -- Main GUI container
 local mainFrame = Instance.new("Frame")
