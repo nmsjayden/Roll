@@ -1,9 +1,11 @@
 -- Ensure compatibility with executors
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
+local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
+
 local toggleActive = false
+local currentCharacter = player.Character or player.CharacterAdded:Wait()
+local humanoid = currentCharacter:WaitForChild("Humanoid")
 
 -- Create GUI
 local screenGui = Instance.new("ScreenGui")
@@ -45,8 +47,14 @@ maximizeButton.Visible = false
 maximizeButton.Active = true
 maximizeButton.Parent = screenGui
 
--- Reference to the Potions folder in Workspace > Game > Potions
-local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
+-- Function to update character and humanoid when the character resets
+local function onCharacterAdded(newCharacter)
+    currentCharacter = newCharacter
+    humanoid = currentCharacter:WaitForChild("Humanoid")
+end
+
+-- Connect to the CharacterAdded event to handle resets
+player.CharacterAdded:Connect(onCharacterAdded)
 
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
 local function findNearestPotion()
@@ -57,7 +65,7 @@ local function findNearestPotion()
         if obj:IsA("Model") and (obj.Name == "Gem" or obj.Name == "speed_potion" or obj.Name == "ultimate_potion" or obj.Name == "luck_potion") then
             local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
             if potionPart then
-                local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
+                local distance = (currentCharacter.PrimaryPart.Position - potionPart.Position).Magnitude
                 if distance < closestDistance then
                     closestDistance = distance
                     closestPotion = potionPart
@@ -71,30 +79,30 @@ end
 
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract()
+    local interacted = false
+
     while toggleActive do
         local potion = findNearestPotion()
         if potion then
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
             local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
-            character:SetPrimaryPartCFrame(CFrame.new(newPosition))
+            currentCharacter:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-            -- Immediately interact with a ProximityPrompt near the potion
-            local interacted = false
+            -- Interact with ProximityPrompt near the potion
             for _, prompt in pairs(workspace:GetDescendants()) do
-                if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
-                    -- Trigger the ProximityPrompt interaction as quickly as possible
-                    prompt:InputHoldBegin()
-                    prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
-                    interacted = true
+                if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - currentCharacter.PrimaryPart.Position).Magnitude < 10 then
+                    -- Trigger the ProximityPrompt interaction once
+                    if not interacted then
+                        prompt:InputHoldBegin()
+                        prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
+                        interacted = true
+                        print("Successfully interacted with the ProximityPrompt!")
+                    end
                     break
                 end
             end
-
-            if interacted then
-                print("Successfully interacted with the ProximityPrompt!")
-            end
         end
-        wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
+        wait(0.1) -- Wait before trying again to prevent continuous interactions
     end
 end
 
@@ -112,7 +120,7 @@ local function retryPotionSearch()
             if obj:IsA("Model") then
                 local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
                 if potionPart then
-                    local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
+                    local distance = (currentCharacter.PrimaryPart.Position - potionPart.Position).Magnitude
                     if distance < 10 then
                         if obj.Name == "Gem" then
                             gemCount = gemCount + 1
