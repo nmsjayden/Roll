@@ -8,7 +8,7 @@ local function a()
     end
 end
 -- CHANGE THESE AURAS HERE IF ITS DELETING SOMETHING HERE THAT U WANT
-local aurasToDelete={"Heat","Flames Curse","Dark Matter","Frigid","Sorcerous","Starstruck","Voltage","Constellar","Iridescent","Gale","Shiver","Bloom","Fiend","Tidal","Flame","Frost","Antimatter","Numerical","Orbital","Moonlit","Glacial","Bloom","Prism","Nebula","Iridescent","Cupid","Storm"}
+local aurasToDelete={"Heat","Flames Curse","Dark Matter","Frigid","Sorcerous","Starstruck","Voltage","Constellar","Iridescent","Gale","Shiver","Bloom","Fiend","Tidal","Flame","Frost","Antimatter","Numerical","Orbital","Moonlit","Glacial","Bloom","Prism","Nebula","Iridescent","Cupid","Storm","Aurora","Infernal","Azure Periastron","Gladiator","Neptune","Constellation","Reborn","Storm: True Form","Omniscient","Acceleration","Grim Reaper","Infinity","Prismatic","Eternal","Serenity","Sakura"}
 local c=0
 local amountToDelete="6"
 
