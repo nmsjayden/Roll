@@ -75,25 +75,22 @@ local function findNearestGem()
     return closestGem
 end
 
--- Function to teleport to the gem and interact with its ProximityPrompt
+-- Function to teleport to the gem and interact with its ProximityPrompt quickly
 local function teleportToGemAndInteract()
     while toggleActive do
         local success, errorMessage = pcall(function()
             local gem = findNearestGem()
             if gem then
-                -- Teleport to the Gem's position
-                character:SetPrimaryPartCFrame(gem.CFrame)
+                -- Teleport to the Gem's position, slightly raised to avoid colliding with the ground
+                local newPosition = gem.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the Gem's position
+                character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-                -- Wait a moment for the teleportation to complete
-                wait(0.5) -- Adjust as needed to ensure character is fully teleported
-
-                -- Find a ProximityPrompt near the Gem
+                -- Immediately check for and interact with a ProximityPrompt near the Gem
                 for _, prompt in pairs(workspace:GetDescendants()) do
                     if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
                         print("Interacting with ProximityPrompt near Gem!")
                         prompt:InputHoldBegin()
-                        wait(0.5) -- Simulate interaction time
-                        prompt:InputHoldEnd()
+                        prompt:InputHoldEnd()  -- Immediately trigger the interaction without delays
                         break
                     end
                 end
