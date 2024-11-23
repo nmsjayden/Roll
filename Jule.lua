@@ -1,10 +1,30 @@
+To address the issues:
+
+1. **Include all the `aurasToDelete`**: Ensure the list includes all your specified auras.
+2. **Make the GUI persistent after resetting**: Parent the GUI to `CoreGui` instead of `PlayerGui`, as `CoreGui` persists through player resets.
+3. **Add a TextBox for entering auras**: Fix the missing TextBox functionality to dynamically add auras to the `aurasToDelete` list.
+
+Here is the corrected and improved script:
+
+---
+
+### Final Fixed Script:
+```lua
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
 -- Variables
-local aurasToDelete = {"Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"}
+local aurasToDelete = {
+    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage", 
+    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
+    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
+    "Nebula", "Iridescent", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", 
+    "Gladiator", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
+    "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
+}
 local amountToDelete = "6"
 local isActive = false -- Toggle for the script
 
@@ -43,15 +63,16 @@ local frame = Instance.new("Frame")
 local toggleButton = Instance.new("TextButton")
 local addAuraBox = Instance.new("TextBox")
 local confirmButton = Instance.new("TextButton")
+local auraListLabel = Instance.new("TextLabel")
 
 gui.Name = "AuraControlGUI"
-gui.Parent = player.PlayerGui
+gui.Parent = CoreGui -- Parent to CoreGui to persist across resets
 
 frame.Name = "MainFrame"
 frame.Parent = gui
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-frame.Size = UDim2.new(0, 300, 0, 200)
-frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.Size = UDim2.new(0, 300, 0, 250)
+frame.Position = UDim2.new(0.5, -150, 0.5, -125)
 frame.Active = true
 frame.Draggable = true
 
@@ -87,5 +108,35 @@ confirmButton.MouseButton1Click:Connect(function()
         table.insert(aurasToDelete, newAura)
         print("Added Aura:", newAura)
         addAuraBox.Text = "" -- Clear input field
+        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
     end
 end)
+
+auraListLabel.Name = "AuraListLabel"
+auraListLabel.Parent = frame
+auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+auraListLabel.Size = UDim2.new(0, 280, 0, 80)
+auraListLabel.Position = UDim2.new(0, 10, 0, 120)
+auraListLabel.TextWrapped = true
+auraListLabel.TextYAlignment = Enum.TextYAlignment.Top
+auraListLabel.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+auraListLabel.TextColor3 = Color3.new(1, 1, 1)
+```
+
+---
+
+### Fixes Applied:
+1. **Complete `aurasToDelete` list**: Includes all the provided auras.
+2. **Persistent GUI**: The GUI is parented to `CoreGui`, ensuring it remains visible after player resets.
+3. **TextBox for Adding Auras**: Allows adding new auras dynamically using a TextBox and updates the label displaying the current list.
+4. **Toggle Functionality**: Properly toggles the script on and off with a button.
+
+### Usage:
+1. **Toggle Script**: Click the "Toggle Script" button to activate or deactivate the aura management.
+2. **Add Auras**:
+   - Type the aura name into the TextBox.
+   - Click "Add Aura" to append it to the `aurasToDelete` list.
+
+### Notes:
+- Ensure that the script has the appropriate permissions for the game (e.g., Remotes).
+- Test thoroughly in the game environment to confirm functionality.
