@@ -14,7 +14,7 @@ local aurasToDelete = {
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
     "Nebula", "Iridescent", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", 
-    "Gladiator", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
+    "GLADIATOR", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
     "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
 }
 local isScriptActive = false
@@ -27,7 +27,7 @@ end
 
 task.spawn(function()
     while true do
-        task.wait(0.001)
+        task.wait(0.01) -- Reduced the wait time to make it faster
         if isScriptActive then
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
@@ -61,7 +61,7 @@ header.Parent = mainFrame
 local hideButton = Instance.new("TextButton")
 hideButton.Size = UDim2.new(0, 30, 0, 30)
 hideButton.Position = UDim2.new(1, -35, 0, 5)
-hideButton.Text = "-"
+hideButton.Text = "X"  -- Changed to "X" as per request
 hideButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
 hideButton.Parent = header
 
@@ -91,7 +91,7 @@ local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 40)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 50)
 toggleButton.Text = "Toggle Script: OFF"
-toggleButton.BackgroundColor3 = Color3.new(0.3, 0.8, 0.3)
+toggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3) -- Default to red (OFF)
 toggleButton.Parent = mainFrame
 
 toggleButton.MouseButton1Click:Connect(function()
@@ -104,7 +104,7 @@ end)
 local auraTextbox = Instance.new("TextBox")
 auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
 auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
-auraTextbox.PlaceholderText = "Type an Aura Here"
+auraTextbox.PlaceholderText = "Input Aura Name Here"  -- Updated placeholder text
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = mainFrame
 
