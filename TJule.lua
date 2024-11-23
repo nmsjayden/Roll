@@ -1,16 +1,15 @@
--- LocalScript
+-- LocalScript (inside ScreenGui or TextButton)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
-local toggle = false
 
--- Keybind to toggle the script
-local toggleKey = Enum.KeyCode.E
+local toggle = false
+local button = script.Parent:WaitForChild("TextButton") -- Adjust this if the script is inside the TextButton
+button.Text = "Start Collector"
 
 -- Function to find the nearest gem
 local function findNearestGem()
@@ -34,8 +33,8 @@ end
 -- Function to move to the gem
 local function moveToGem(gem)
     if not gem or not character.PrimaryPart then return end
-    local humanoidMoveTo = humanoid:MoveTo(gem.Position)
-    
+    humanoid:MoveTo(gem.Position)
+
     -- Wait until the player reaches the gem
     local reached = humanoid.MoveToFinished:Wait()
     if reached and gem:FindFirstChild("ProximityPrompt") then
@@ -47,6 +46,7 @@ end
 -- Toggle function
 local function toggleScript()
     toggle = not toggle
+    button.Text = toggle and "Stop Collector" or "Start Collector"
 
     if toggle then
         print("Gem Collector Activated")
@@ -65,10 +65,7 @@ local function toggleScript()
     end
 end
 
--- Keybind listener
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == toggleKey then
-        toggleScript()
-    end
+-- Button click listener
+button.MouseButton1Click:Connect(function()
+    toggleScript()
 end)
