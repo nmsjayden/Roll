@@ -1,6 +1,14 @@
--- This script assumes it's running in Roblox Studio and allows file system access via writefile() and makefolder()
+-- Original Script Functionality
+local function processAuras()
+    local r = game:GetService("ReplicatedStorage")
+    local f = r:FindFirstChild("Auras")
+    if f then
+        for _, b in pairs(f:GetChildren()) do
+            r.Remotes.AcceptAura:FireServer(b.Name, true)
+        end
+    end
+end
 
--- Aura Data Setup
 local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
@@ -9,60 +17,7 @@ local aurasToDelete = {
     "GLADIATOR", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
     "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
 }
-
--- File and Folder Setup
-local folderName = "Jule"
-local fileName = "AuraList.txt"
-
--- Create folder and file if they don't exist
-local function createFolderAndFile()
-    local success, errorMessage = pcall(function()
-        -- Create folder if it doesn't exist
-        if not isfolder(folderName) then
-            makefolder(folderName)
-        end
-        -- Create file if it doesn't exist
-        if not isfile(folderName .. "/" .. fileName) then
-            writefile(folderName .. "/" .. fileName, table.concat(aurasToDelete, "\n"))
-        end
-    end)
-
-    if not success then
-        warn("Failed to create folder or file: " .. errorMessage)
-    end
-end
-
--- Load Aura List from the file
-local function loadAurasFromFile()
-    local success, storedAuras = pcall(function()
-        return readfile(folderName .. "/" .. fileName)
-    end)
-
-    if success then
-        -- Split file content into a list and update aurasToDelete
-        aurasToDelete = {}
-        for aura in storedAuras:gmatch("[^\r\n]+") do
-            table.insert(aurasToDelete, aura)
-        end
-    else
-        warn("Failed to load aura list: " .. storedAuras)
-    end
-end
-
--- Save Aura List to the file
-local function saveAurasToFile()
-    local success, errorMessage = pcall(function()
-        writefile(folderName .. "/" .. fileName, table.concat(aurasToDelete, "\n"))
-    end)
-
-    if not success then
-        warn("Failed to save aura list: " .. errorMessage)
-    end
-end
-
--- GUI and Script Setup (as in the original script)
 local isScriptActive = false
-local amountToDelete = "6"
 
 -- Script Toggle Behavior
 local function toggleScript()
@@ -71,24 +26,21 @@ end
 
 task.spawn(function()
     while true do
-        task.wait(0.01)
+        task.wait(0.01) -- Reduced the wait time to make it faster
         if isScriptActive then
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
             for _, d in ipairs(aurasToDelete) do
-                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+                local args = { [1] = d }
+                game:GetService("ReplicatedStorage").Remotes.DeclineAura:FireServer(unpack(args))
             end
         end
     end
 end)
 
--- Call createFolderAndFile() to ensure the folder and file exist when the script starts
-createFolderAndFile()
-loadAurasFromFile() -- Load previously saved auras
-
--- GUI Creation and Aura Management as before (this part remains unchanged)
+-- GUI Creation
 local gui = Instance.new("ScreenGui")
-gui.Parent = game:GetService("CoreGui")
+gui.Parent = game:GetService("CoreGui") -- Prevent unloading on reset
 gui.Name = "AuraControlGUI"
 
 local mainFrame = Instance.new("Frame")
@@ -122,7 +74,6 @@ showButton.Draggable = true
 showButton.Visible = false
 showButton.Parent = gui
 
--- Hide and Show Button Functionality
 hideButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     hideButton.Visible = false
@@ -140,7 +91,7 @@ local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 40)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 50)
 toggleButton.Text = "Toggle Script: OFF"
-toggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
+toggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3) -- Default to red (OFF)
 toggleButton.Parent = mainFrame
 
 toggleButton.MouseButton1Click:Connect(function()
@@ -173,31 +124,31 @@ removeButton.Parent = mainFrame
 
 -- Aura List
 local auraListLabel = Instance.new("TextLabel")
-auraListLabel.Size = UDim2.new(0.9, 0, 0, 200)
+auraListLabel.Size = UDim2.new(0.9, 0, 0, 150)
 auraListLabel.Position = UDim2.new(0.05, 0, 0, 200)
 auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
-auraListLabel.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
+auraListLabel.TextWrapped = true
+auraListLabel.TextYAlignment = Enum.TextYAlignment.Top
+auraListLabel.BackgroundTransparency = 1
+auraListLabel.TextColor3 = Color3.new(1, 1, 1)
 auraListLabel.Parent = mainFrame
 
--- Add Aura Button Logic
+-- Add/Remove Button Functionality
 addButton.MouseButton1Click:Connect(function()
-    local auraName = auraTextbox.Text
-    if auraName ~= "" and not table.find(aurasToDelete, auraName) then
-        table.insert(aurasToDelete, auraName)
-        auraTextbox.Text = ""
-        saveAurasToFile()  -- Save to file after adding
+    if auraTextbox.Text ~= "" then
+        table.insert(aurasToDelete, auraTextbox.Text)
         auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+        auraTextbox.Text = ""
     end
 end)
 
--- Remove Aura Button Logic
 removeButton.MouseButton1Click:Connect(function()
-    local auraName = auraTextbox.Text
-    local index = table.find(aurasToDelete, auraName)
-    if index then
-        table.remove(aurasToDelete, index)
-        auraTextbox.Text = ""
-        saveAurasToFile()  -- Save to file after removing
-        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+    for i, aura in ipairs(aurasToDelete) do
+        if aura == auraTextbox.Text then
+            table.remove(aurasToDelete, i)
+            auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+            auraTextbox.Text = ""
+            break
+        end
     end
 end)
