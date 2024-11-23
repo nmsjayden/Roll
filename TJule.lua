@@ -11,7 +11,7 @@ local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 -- Main GUI container
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 220, 0, 80)
-mainFrame.Position = UDim2.new(0.5, -110, 0.8, 0)
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -40) -- Centered on screen
 mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 mainFrame.Active = true
 mainFrame.Draggable = true -- Make the GUI movable
@@ -37,7 +37,7 @@ minimizeButton.Parent = mainFrame
 -- Maximize Button
 local maximizeButton = Instance.new("TextButton")
 maximizeButton.Size = UDim2.new(0, 20, 0, 20)
-maximizeButton.Position = UDim2.new(0.5, -10, 0.8, 0)
+maximizeButton.Position = UDim2.new(0.5, -10, 0.5, 50)
 maximizeButton.Text = "+"
 maximizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 maximizeButton.Visible = false
@@ -49,7 +49,9 @@ local function findNearestGem()
     local closestDistance = math.huge
 
     for _, obj in pairs(workspace:GetChildren()) do
-        if obj and obj:IsA("BasePart") and obj.Name == "Gem" then -- Assuming Gems are BasePart instances named "Gem"
+        -- Ensure the object is valid, has a ProximityPrompt, and is named "Gem"
+        local proximityPrompt = obj:FindFirstChildOfClass("ProximityPrompt")
+        if obj and proximityPrompt and obj:IsA("BasePart") and obj.Name == "Gem" then
             local distance = (character.PrimaryPart.Position - obj.Position).Magnitude
             if distance < closestDistance then
                 closestDistance = distance
@@ -67,7 +69,7 @@ local function findNearestGem()
     return closestGem
 end
 
--- Function to walk to and interact with a gem
+-- Function to walk to and interact with a gem using ProximityPrompt
 local function collectGem()
     while toggleActive do
         local success, errorMessage = pcall(function()
@@ -79,17 +81,22 @@ local function collectGem()
                 -- Wait until near the gem
                 local distanceCheck = humanoid.MoveToFinished:Wait()
                 if distanceCheck and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
-                    -- Simulate interaction
-                    firetouchinterest(character.PrimaryPart, gem, 0) -- Begin touch
-                    wait(0.1)
-                    firetouchinterest(character.PrimaryPart, gem, 1) -- End touch
+                    -- Find and trigger the ProximityPrompt
+                    local proximityPrompt = gem:FindFirstChildOfClass("ProximityPrompt")
+                    if proximityPrompt then
+                        proximityPrompt:InputHoldBegin() -- Begin interaction
+                        wait(0.5) -- Simulate hold duration (adjust as needed)
+                        proximityPrompt:InputHoldEnd() -- End interaction
+                    end
                 end
             else
-                wait(5) -- Retry after a delay
+                -- Wait and retry if no gem is found
+                wait(5)
             end
         end)
 
         if not success then
+            -- Handle any errors gracefully
             print("Error during gem collection: " .. errorMessage)
             wait(5) -- Retry after a delay
         end
