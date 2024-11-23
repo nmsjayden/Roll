@@ -1,29 +1,32 @@
--- Client-Side Script (For Player)
-local player = game.Players.LocalPlayer
-local playerId = tostring(player.UserId)  -- Player's UserId as unique identifier for saving
-local DataStoreKey = playerId .. "_Auras" -- Unique key to save auras
-local aurasToDelete = {}  -- Table for storing auras
-local isScriptActive = false  -- To toggle the script's activity
-local amountToDelete = "6"  -- Amount to delete each time
+local Player = game.Players.LocalPlayer
+local playerName = Player.Name
+local LocalStorageService = game:GetService("LocalStorageService")
 
--- Helper function to load saved auras
-local function loadAuras()
-    local savedData = game:GetService("PlayerStorage"):GetAsync(DataStoreKey)
-    if savedData then
-        aurasToDelete = savedData
-    end
-end
+-- Get saved aura data (if any)
+local savedAuras = LocalStorageService:GetAsync(playerName .. "_Auras")
+local aurasToDelete = savedAuras or {
+    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
+    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
+    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
+    "Nebula", "Iridescent", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", 
+    "GLADIATOR", "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", 
+    "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
+}
 
--- Helper function to save auras
+local isScriptActive = false
+local amountToDelete = "6"
+
+-- Save the aura list to LocalStorage
 local function saveAuras()
-    -- Use PlayerStorage to save the data locally (this can be used for mobile)
-    game:GetService("PlayerStorage"):SetAsync(DataStoreKey, aurasToDelete)
+    LocalStorageService:SetAsync(playerName .. "_Auras", aurasToDelete)
 end
 
--- Load saved auras when the player joins
-loadAuras()
+-- Script Toggle Behavior
+local function toggleScript()
+    isScriptActive = not isScriptActive
+end
 
--- GUI and Script logic
+-- GUI Creation (same as before)
 local gui = Instance.new("ScreenGui")
 gui.Parent = game:GetService("CoreGui")
 gui.Name = "AuraControlGUI"
@@ -37,36 +40,27 @@ mainFrame.Active = true
 mainFrame.Visible = true
 mainFrame.Parent = gui
 
--- Header with Hide/Show Button
-local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 40)
-header.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-header.Parent = mainFrame
-
 local hideButton = Instance.new("TextButton")
 hideButton.Size = UDim2.new(0, 30, 0, 30)
 hideButton.Position = UDim2.new(1, -35, 0, 5)
-hideButton.Text = "X"  -- Close button
+hideButton.Text = "X"
 hideButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
-hideButton.Parent = header
+hideButton.Parent = mainFrame
 
 local showButton = Instance.new("TextButton")
 showButton.Size = UDim2.new(0, 50, 0, 50)
 showButton.Position = UDim2.new(0, 10, 0, 10)
 showButton.Text = "+"
 showButton.BackgroundColor3 = Color3.new(0.2, 0.8, 0.2)
-showButton.Draggable = true
 showButton.Visible = false
 showButton.Parent = gui
 
--- Function to hide the GUI
 hideButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
     hideButton.Visible = false
     showButton.Visible = true
 end)
 
--- Function to show the GUI
 showButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = true
     hideButton.Visible = true
@@ -78,12 +72,11 @@ local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 40)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 50)
 toggleButton.Text = "Toggle Script: OFF"
-toggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3) -- Default to red (OFF)
+toggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
 toggleButton.Parent = mainFrame
 
--- Toggle the script on/off
 toggleButton.MouseButton1Click:Connect(function()
-    isScriptActive = not isScriptActive
+    toggleScript()
     toggleButton.Text = "Toggle Script: " .. (isScriptActive and "ON" or "OFF")
     toggleButton.BackgroundColor3 = isScriptActive and Color3.new(0.3, 0.8, 0.3) or Color3.new(0.8, 0.3, 0.3)
 end)
@@ -126,8 +119,8 @@ addButton.MouseButton1Click:Connect(function()
     if auraTextbox.Text ~= "" then
         table.insert(aurasToDelete, auraTextbox.Text)
         auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+        saveAuras()  -- Save aura list
         auraTextbox.Text = ""
-        saveAuras() -- Save the updated list
     end
 end)
 
@@ -136,33 +129,9 @@ removeButton.MouseButton1Click:Connect(function()
         if aura == auraTextbox.Text then
             table.remove(aurasToDelete, i)
             auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+            saveAuras()  -- Save aura list
             auraTextbox.Text = ""
-            saveAuras() -- Save the updated list
             break
-        end
-    end
-end)
-
--- Process Auras (Script Loop)
-local function processAuras()
-    local r = game:GetService("ReplicatedStorage")
-    local f = r:FindFirstChild("Auras")
-    if f then
-        for _, b in pairs(f:GetChildren()) do
-            r.Remotes.AcceptAura:FireServer(b.Name, true)
-        end
-    end
-end
-
-task.spawn(function()
-    while true do
-        task.wait(0.01) -- Faster
-        if isScriptActive then
-            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
-            processAuras()
-            for _, d in ipairs(aurasToDelete) do
-                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
-            end
         end
     end
 end)
