@@ -42,7 +42,6 @@ maximizeButton.Text = "+"
 maximizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 maximizeButton.Visible = false
 maximizeButton.Active = true
-maximizeButton.Draggable = true -- Make the button movable
 maximizeButton.Parent = screenGui
 
 -- Reference to the potions folder
@@ -69,7 +68,7 @@ local function findNearestGem()
     if closestGem then
         print("Successfully found a gem!")
     else
-        print("No gems found. Retrying in 5 seconds...")
+        print("No gems found. Retrying in 10 seconds...")
     end
 
     return closestGem
@@ -97,14 +96,14 @@ local function collectGem()
                 end
             else
                 -- Wait and retry if no gem is found
-                wait(5)
+                wait(10)  -- Increased retry time to 10 seconds
             end
         end)
 
         if not success then
             -- Handle any errors gracefully
             print("Error during gem collection: " .. errorMessage)
-            wait(5) -- Retry after a delay
+            wait(10) -- Retry after a delay
         end
 
         wait(0.5) -- Wait briefly before checking again
@@ -132,4 +131,31 @@ end)
 
 maximizeButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = true
-    maximizeButton
+    maximizeButton.Visible = false
+end)
+
+-- Make the maximize (+) button draggable for mobile
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+maximizeButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = maximizeButton.Position
+    end
+end)
+
+maximizeButton.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.Touch then
+        local delta = input.Position - dragStart
+        maximizeButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+maximizeButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
