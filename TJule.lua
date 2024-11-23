@@ -45,7 +45,7 @@ maximizeButton.Visible = false
 maximizeButton.Active = true
 maximizeButton.Parent = screenGui
 
--- Reference to the potions folder
+-- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
 -- Function to find nearest gem
@@ -53,7 +53,7 @@ local function findNearestGem()
     local closestGem = nil
     local closestDistance = math.huge
 
-    -- Search specifically within the Potions > Gem folder
+    -- Search specifically within the Potions folder for "Gem" objects
     for _, obj in pairs(potionsFolder:GetChildren()) do
         -- Ensure the object is valid, has a ProximityPrompt, and is named "Gem"
         local proximityPrompt = obj:FindFirstChildOfClass("ProximityPrompt")
