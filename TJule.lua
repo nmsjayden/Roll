@@ -62,7 +62,6 @@ local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 local interactedGemsCount = 0
 local interactedSpeedPotionCount = 0
 local interactedUltimatePotionCount = 0
-local lastPrintedCount = "" -- Variable to track the last printed counts to avoid spamming
 
 -- Function to find the nearest potion (Gem, Speed Potion, or Ultimate Potion)
 local function findNearestPotion(potionType)
@@ -70,14 +69,26 @@ local function findNearestPotion(potionType)
     local closestDistance = math.huge
 
     for _, obj in pairs(potionsFolder:GetChildren()) do
-        if obj:IsA("Model") then
+        if obj:IsA("Model") and obj:FindFirstChild("PrimaryPart") then
             -- Check if the potion matches the type we're looking for
             if potionType == "Gem" and obj.Name == "Gem" then
-                closestPotion = obj
+                local distance = (character.PrimaryPart.Position - obj.PrimaryPart.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPotion = obj
+                end
             elseif potionType == "Speed Potion" and obj.Name == "speed_potion" then
-                closestPotion = obj
+                local distance = (character.PrimaryPart.Position - obj.PrimaryPart.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPotion = obj
+                end
             elseif potionType == "Ultimate Potion" and obj.Name == "ultimate_potion" then
-                closestPotion = obj
+                local distance = (character.PrimaryPart.Position - obj.PrimaryPart.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPotion = obj
+                end
             end
         end
     end
@@ -87,28 +98,21 @@ end
 
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(potionType)
-    while toggleActive do
-        local potion = findNearestPotion(potionType)
-        if potion then
-            -- Teleport directly to the Potion's position (no offset)
-            local newPosition = potion.PrimaryPart.Position + Vector3.new(0, 2, 0)  -- Slight Y offset to prevent teleporting into the ground
-            character:SetPrimaryPartCFrame(CFrame.new(newPosition))
+    local potion = findNearestPotion(potionType)
+    if potion and potion.PrimaryPart then
+        -- Teleport directly to the Potion's position (no offset)
+        local newPosition = potion.PrimaryPart.Position + Vector3.new(0, 2, 0) -- Slight Y offset to prevent teleporting into the ground
+        character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-            -- Immediately interact with a ProximityPrompt near the Potion
-            local interacted = false
-            for _, prompt in pairs(potion:GetDescendants()) do
-                if prompt:IsA("ProximityPrompt") then
-                    -- Trigger the ProximityPrompt interaction as quickly as possible
-                    pcall(function()
-                        prompt:InputHoldBegin()
-                        prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
-                    end)
-                    interacted = true
-                    break
-                end
-            end
+        -- Immediately interact with a ProximityPrompt near the Potion
+        for _, prompt in pairs(potion:GetDescendants()) do
+            if prompt:IsA("ProximityPrompt") then
+                -- Trigger the ProximityPrompt interaction as quickly as possible
+                pcall(function()
+                    prompt:InputHoldBegin()
+                    prompt:InputHoldEnd() -- Instantly trigger the interaction without delay
+                end)
 
-            if interacted then
                 -- Increment the interacted count for the respective potion type
                 if potionType == "Gem" then
                     interactedGemsCount = interactedGemsCount + 1
@@ -117,21 +121,17 @@ local function teleportToPotionAndInteract(potionType)
                 elseif potionType == "Ultimate Potion" then
                     interactedUltimatePotionCount = interactedUltimatePotionCount + 1
                 end
+                break
             end
         end
-        wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
 end
 
--- Function to constantly update the count of interacted potions
+-- Function to constantly update the count of interacted potions in the GUI
 local function updatePotionCount()
-    while toggleActive do
-        -- Update the potion count label with the latest interacted counts
-        potionCountLabel.Text = "Gems: " .. interactedGemsCount ..
-                                "\nSpeed Potion: " .. interactedSpeedPotionCount ..
-                                "\nUltimate Potion: " .. interactedUltimatePotionCount
-        wait(1) -- Constantly update every second
-    end
+    potionCountLabel.Text = "Gems: " .. interactedGemsCount ..
+                            "\nSpeed Potion: " .. interactedSpeedPotionCount ..
+                            "\nUltimate Potion: " .. interactedUltimatePotionCount
 end
 
 -- Toggle logic for the main functionality
@@ -140,10 +140,15 @@ toggleButton.MouseButton1Click:Connect(function()
     if toggleActive then
         toggleButton.Text = "Toggle Potion Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-        teleportToPotionAndInteract("Gem")
-        teleportToPotionAndInteract("Speed Potion")
-        teleportToPotionAndInteract("Ultimate Potion")
-        updatePotionCount() -- Start updating potion count constantly
+
+        -- Start collecting potions
+        while toggleActive do
+            teleportToPotionAndInteract("Gem")
+            teleportToPotionAndInteract("Speed Potion")
+            teleportToPotionAndInteract("Ultimate Potion")
+            updatePotionCount() -- Update the potion count in GUI
+            wait(0.1) -- Retry after a short delay for fast interaction
+        end
     else
         toggleButton.Text = "Toggle Potion Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
@@ -159,30 +164,4 @@ end)
 maximizeButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = true
     maximizeButton.Visible = false
-end)
-
--- Custom drag functionality for the maximize (+) button
-local dragging = false
-local dragStart = nil
-local startPos = nil
-
-maximizeButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = mainFrame.Position
-    end
-end)
-
-maximizeButton.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
-maximizeButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
 end)
