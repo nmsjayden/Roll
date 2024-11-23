@@ -92,8 +92,7 @@ local function teleportToPotionAndInteract()
                     -- Instantly trigger the ProximityPrompt interaction (without delay)
                     prompt:InputHoldBegin()
                     prompt:InputHoldEnd()  -- This allows continuous interaction as long as the player is within range
-                    print("Successfully interacted with the ProximityPrompt!")
-                    break -- Break to ensure only one interaction per potion
+                    print("Successfully interacted with the ProximityPrompt!") -- Console will show each interaction
                 end
             end
         end
