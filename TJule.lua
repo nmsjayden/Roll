@@ -49,7 +49,7 @@ maximizeButton.Parent = screenGui
 local potionCountLabel = Instance.new("TextLabel")
 potionCountLabel.Size = UDim2.new(0, 200, 0, 60)
 potionCountLabel.Position = UDim2.new(0, 10, 0, 70) -- Position below the toggle button
-potionCountLabel.Text = "Gems: 0\nSpeed: 0\nUltimate: 0"
+potionCountLabel.Text = "Gems: 0\nSpeed Potion: 0\nUltimate Potion: 0"
 potionCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 potionCountLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 potionCountLabel.BackgroundTransparency = 0.5
@@ -60,11 +60,11 @@ local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
 -- Counter for interacted potions
 local interactedGemsCount = 0
-local interactedSpeedCount = 0
-local interactedUltimateCount = 0
+local interactedSpeedPotionCount = 0
+local interactedUltimatePotionCount = 0
 local lastPrintedCount = "" -- Variable to track the last printed counts to avoid spamming
 
--- Function to find the nearest potion (Gem, Speed, or Ultimate)
+-- Function to find the nearest potion (Gem, Speed Potion, or Ultimate Potion)
 local function findNearestPotion(potionType)
     local closestPotion = nil
     local closestDistance = math.huge
@@ -91,7 +91,7 @@ local function teleportToPotionAndInteract(potionType)
         local potion = findNearestPotion(potionType)
         if potion then
             -- Teleport directly to the Potion's position (no offset)
-            local newPosition = potion.Position
+            local newPosition = potion.Position + Vector3.new(0, 2, 0)  -- Slight Y offset to prevent teleporting into the ground
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the Potion
@@ -115,9 +115,9 @@ local function teleportToPotionAndInteract(potionType)
                 if potionType == "Gem" then
                     interactedGemsCount = interactedGemsCount + 1
                 elseif potionType == "Speed Potion" then
-                    interactedSpeedCount = interactedSpeedCount + 1
+                    interactedSpeedPotionCount = interactedSpeedPotionCount + 1
                 elseif potionType == "Ultimate Potion" then
-                    interactedUltimateCount = interactedUltimateCount + 1
+                    interactedUltimatePotionCount = interactedUltimatePotionCount + 1
                 end
             end
         end
@@ -129,7 +129,7 @@ end
 local function updatePotionCount()
     while toggleActive do
         -- Update the potion count label with the latest interacted counts
-        local currentCount = "Gems: " .. interactedGemsCount .. "\nSpeed: " .. interactedSpeedCount .. "\nUltimate: " .. interactedUltimateCount
+        local currentCount = "Gems: " .. interactedGemsCount .. "\nSpeed Potion: " .. interactedSpeedPotionCount .. "\nUltimate Potion: " .. interactedUltimatePotionCount
         if currentCount ~= lastPrintedCount then
             potionCountLabel.Text = currentCount -- Update the label text
             lastPrintedCount = currentCount
@@ -145,8 +145,8 @@ toggleButton.MouseButton1Click:Connect(function()
         toggleButton.Text = "Toggle Potion Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
         teleportToPotionAndInteract("Gem")
-        teleportToPotionAndInteract("Speed")
-        teleportToPotionAndInteract("Ultimate")
+        teleportToPotionAndInteract("Speed Potion")
+        teleportToPotionAndInteract("Ultimate Potion")
         updatePotionCount() -- Start updating potion count constantly
     else
         toggleButton.Text = "Toggle Potion Collector (Off)"
