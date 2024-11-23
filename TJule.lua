@@ -114,9 +114,9 @@ local function teleportToPotionAndInteract(potionType)
                 -- Increment the interacted count for the respective potion type
                 if potionType == "Gem" then
                     interactedGemsCount = interactedGemsCount + 1
-                elseif potionType == "Speed" then
+                elseif potionType == "Speed Potion" then
                     interactedSpeedCount = interactedSpeedCount + 1
-                elseif potionType == "Ultimate" then
+                elseif potionType == "Ultimate Potion" then
                     interactedUltimateCount = interactedUltimateCount + 1
                 end
             end
