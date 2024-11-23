@@ -2,9 +2,11 @@ local Player = game.Players.LocalPlayer
 local playerName = Player.Name
 local LocalStorageService = game:GetService("LocalStorageService")
 
--- Get saved aura data (if any)
-local savedAuras = LocalStorageService:GetAsync(playerName .. "_Auras")
-local aurasToDelete = savedAuras or {
+-- Key to store player-specific data
+local storageKey = playerName .. "_Auras"
+
+-- Default aura list if no saved data is found
+local defaultAuras = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
@@ -13,12 +15,23 @@ local aurasToDelete = savedAuras or {
     "Acceleration", "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
 }
 
+-- Attempt to load saved aura list
+local savedAuras = LocalStorageService:GetAsync(storageKey)
+
+-- If no saved auras are found, use the default auras
+local aurasToDelete = savedAuras or defaultAuras
+
 local isScriptActive = false
 local amountToDelete = "6"
 
 -- Save the aura list to LocalStorage
 local function saveAuras()
-    LocalStorageService:SetAsync(playerName .. "_Auras", aurasToDelete)
+    local success, errorMessage = pcall(function()
+        LocalStorageService:SetAsync(storageKey, aurasToDelete)
+    end)
+    if not success then
+        warn("Failed to save aura list: " .. errorMessage)
+    end
 end
 
 -- Script Toggle Behavior
@@ -26,7 +39,7 @@ local function toggleScript()
     isScriptActive = not isScriptActive
 end
 
--- GUI Creation (same as before)
+-- GUI Creation
 local gui = Instance.new("ScreenGui")
 gui.Parent = game:GetService("CoreGui")
 gui.Name = "AuraControlGUI"
@@ -40,12 +53,18 @@ mainFrame.Active = true
 mainFrame.Visible = true
 mainFrame.Parent = gui
 
+-- Header with Hide Button
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 40)
+header.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+header.Parent = mainFrame
+
 local hideButton = Instance.new("TextButton")
 hideButton.Size = UDim2.new(0, 30, 0, 30)
 hideButton.Position = UDim2.new(1, -35, 0, 5)
 hideButton.Text = "X"
 hideButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
-hideButton.Parent = mainFrame
+hideButton.Parent = header
 
 local showButton = Instance.new("TextButton")
 showButton.Size = UDim2.new(0, 50, 0, 50)
@@ -119,7 +138,7 @@ addButton.MouseButton1Click:Connect(function()
     if auraTextbox.Text ~= "" then
         table.insert(aurasToDelete, auraTextbox.Text)
         auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
-        saveAuras()  -- Save aura list
+        saveAuras()  -- Save aura list to LocalStorage
         auraTextbox.Text = ""
     end
 end)
@@ -129,7 +148,7 @@ removeButton.MouseButton1Click:Connect(function()
         if aura == auraTextbox.Text then
             table.remove(aurasToDelete, i)
             auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
-            saveAuras()  -- Save aura list
+            saveAuras()  -- Save aura list to LocalStorage
             auraTextbox.Text = ""
             break
         end
