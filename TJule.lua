@@ -9,7 +9,7 @@ local function processAuras()
     end
 end
 
-local aurasToDelete = {
+local aurasToDecline = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
@@ -30,8 +30,10 @@ task.spawn(function()
         if isScriptActive then
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
-            for _, d in ipairs(aurasToDelete) do
-                local args = { [1] = d }
+            for _, d in ipairs(aurasToDecline) do
+                local args = {
+                    [1] = d
+                }
                 game:GetService("ReplicatedStorage").Remotes.DeclineAura:FireServer(unpack(args))
             end
         end
@@ -104,7 +106,7 @@ end)
 local auraTextbox = Instance.new("TextBox")
 auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
 auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
-auraTextbox.PlaceholderText = "Input Aura Name Here"
+auraTextbox.PlaceholderText = "Input Aura Name Here" -- Updated placeholder text
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = mainFrame
 
@@ -126,7 +128,7 @@ removeButton.Parent = mainFrame
 local auraListLabel = Instance.new("TextLabel")
 auraListLabel.Size = UDim2.new(0.9, 0, 0, 150)
 auraListLabel.Position = UDim2.new(0.05, 0, 0, 200)
-auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+auraListLabel.Text = "Auras: " .. table.concat(aurasToDecline, ", ")
 auraListLabel.TextWrapped = true
 auraListLabel.TextYAlignment = Enum.TextYAlignment.Top
 auraListLabel.BackgroundTransparency = 1
@@ -136,17 +138,17 @@ auraListLabel.Parent = mainFrame
 -- Add/Remove Button Functionality
 addButton.MouseButton1Click:Connect(function()
     if auraTextbox.Text ~= "" then
-        table.insert(aurasToDelete, auraTextbox.Text)
-        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+        table.insert(aurasToDecline, auraTextbox.Text)
+        auraListLabel.Text = "Auras: " .. table.concat(aurasToDecline, ", ")
         auraTextbox.Text = ""
     end
 end)
 
 removeButton.MouseButton1Click:Connect(function()
-    for i, aura in ipairs(aurasToDelete) do
+    for i, aura in ipairs(aurasToDecline) do
         if aura == auraTextbox.Text then
-            table.remove(aurasToDelete, i)
-            auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
+            table.remove(aurasToDecline, i)
+            auraListLabel.Text = "Auras: " .. table.concat(aurasToDecline, ", ")
             auraTextbox.Text = ""
             break
         end
