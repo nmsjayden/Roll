@@ -70,14 +70,14 @@ local function findNearestPotion(potionType)
     local closestDistance = math.huge
 
     for _, obj in pairs(potionsFolder:GetChildren()) do
-        if obj:IsA("Model") and obj.Name == potionType then
-            local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-            if potionPart then
-                local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
-                if distance < closestDistance then
-                    closestDistance = distance
-                    closestPotion = potionPart
-                end
+        if obj:IsA("Model") then
+            -- Check if the potion matches the type we're looking for
+            if potionType == "Gem" and obj.Name == "Gem" then
+                closestPotion = obj
+            elseif potionType == "Speed Potion" and obj.Name == "speed_potion" then
+                closestPotion = obj
+            elseif potionType == "Ultimate Potion" and obj.Name == "ultimate_potion" then
+                closestPotion = obj
             end
         end
     end
@@ -91,22 +91,20 @@ local function teleportToPotionAndInteract(potionType)
         local potion = findNearestPotion(potionType)
         if potion then
             -- Teleport directly to the Potion's position (no offset)
-            local newPosition = potion.Position + Vector3.new(0, 2, 0)  -- Slight Y offset to prevent teleporting into the ground
+            local newPosition = potion.PrimaryPart.Position + Vector3.new(0, 2, 0)  -- Slight Y offset to prevent teleporting into the ground
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the Potion
             local interacted = false
-            for _, prompt in pairs(workspace:GetDescendants()) do
-                if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+            for _, prompt in pairs(potion:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") then
                     -- Trigger the ProximityPrompt interaction as quickly as possible
-                    if prompt then
-                        pcall(function()
-                            prompt:InputHoldBegin()
-                            prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
-                        end)
-                        interacted = true
-                        break
-                    end
+                    pcall(function()
+                        prompt:InputHoldBegin()
+                        prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
+                    end)
+                    interacted = true
+                    break
                 end
             end
 
@@ -129,11 +127,9 @@ end
 local function updatePotionCount()
     while toggleActive do
         -- Update the potion count label with the latest interacted counts
-        local currentCount = "Gems: " .. interactedGemsCount .. "\nSpeed Potion: " .. interactedSpeedPotionCount .. "\nUltimate Potion: " .. interactedUltimatePotionCount
-        if currentCount ~= lastPrintedCount then
-            potionCountLabel.Text = currentCount -- Update the label text
-            lastPrintedCount = currentCount
-        end
+        potionCountLabel.Text = "Gems: " .. interactedGemsCount ..
+                                "\nSpeed Potion: " .. interactedSpeedPotionCount ..
+                                "\nUltimate Potion: " .. interactedUltimatePotionCount
         wait(1) -- Constantly update every second
     end
 end
