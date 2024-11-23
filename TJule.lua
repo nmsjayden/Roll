@@ -47,9 +47,9 @@ maximizeButton.Parent = screenGui
 
 -- Potion Count TextLabel
 local potionCountLabel = Instance.new("TextLabel")
-potionCountLabel.Size = UDim2.new(0, 200, 0, 40)
+potionCountLabel.Size = UDim2.new(0, 200, 0, 60)
 potionCountLabel.Position = UDim2.new(0, 10, 0, 70) -- Position below the toggle button
-potionCountLabel.Text = "Uninteracted Potions: 0 Gems, 0 Speed, 0 Ultimate"
+potionCountLabel.Text = "Gems: 0\nSpeed: 0\nUltimate: 0"
 potionCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 potionCountLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 potionCountLabel.BackgroundTransparency = 0.5
@@ -90,8 +90,8 @@ local function teleportToPotionAndInteract(potionType)
     while toggleActive do
         local potion = findNearestPotion(potionType)
         if potion then
-            -- Teleport to the Potion's position, slightly raised to avoid colliding with the ground
-            local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the Potion's position
+            -- Teleport directly to the Potion's position (no offset)
+            local newPosition = potion.Position
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the Potion
@@ -145,12 +145,12 @@ local function updatePotionCount()
         end
 
         -- Update the potion count label and print the counts in the console
-        local currentCount = gemCount .. " Gems, " .. speedCount .. " Speed, " .. ultimateCount .. " Ultimate"
+        local currentCount = "Gems: " .. gemCount .. "\nSpeed: " .. speedCount .. "\nUltimate: " .. ultimateCount
         if currentCount ~= lastPrintedCount then
             uninteractedGemsCount = gemCount
             uninteractedSpeedCount = speedCount
             uninteractedUltimateCount = ultimateCount
-            potionCountLabel.Text = "Uninteracted Potions: " .. currentCount -- Update the label text
+            potionCountLabel.Text = currentCount -- Update the label text
             print("Uninteracted Potions - " .. currentCount) -- Optionally print in console for debugging
             lastPrintedCount = currentCount
         end
