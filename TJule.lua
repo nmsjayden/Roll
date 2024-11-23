@@ -48,33 +48,65 @@ maximizeButton.Parent = screenGui
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Function to find and interact with nearby ProximityPrompts
-local function interactWithNearbyPrompts()
+-- Function to find the nearest gem
+local function findNearestGem()
+    local closestGem = nil
+    local closestDistance = math.huge
+
+    for _, obj in pairs(potionsFolder:GetChildren()) do
+        if obj:IsA("Model") and obj.Name == "Gem" then
+            local gemPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+            if gemPart then
+                local distance = (character.PrimaryPart.Position - gemPart.Position).Magnitude
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestGem = gemPart
+                end
+            end
+        end
+    end
+
+    if closestGem then
+        print("Nearest Gem found at position:", closestGem.Position)
+    else
+        print("No Gems found nearby.")
+    end
+
+    return closestGem
+end
+
+-- Function to move to a gem and interact with its ProximityPrompt
+local function moveToGemAndInteract()
     while toggleActive do
         local success, errorMessage = pcall(function()
-            for _, obj in pairs(potionsFolder:GetChildren()) do
-                if obj:IsA("Model") and obj.Name == "Gem" then
-                    -- Check proximity between the player and the Gem
-                    local gemPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                    if gemPart and (character.PrimaryPart.Position - gemPart.Position).Magnitude < 10 then -- Adjust the distance as needed
-                        -- Find a ProximityPrompt nearby
-                        for _, prompt in pairs(workspace:GetDescendants()) do
-                            if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
-                                -- Trigger the ProximityPrompt
-                                print("Interacting with ProximityPrompt near Gem!")
-                                prompt:InputHoldBegin()
-                                wait(0.5) -- Simulate interaction time
-                                prompt:InputHoldEnd()
-                                break
-                            end
+            local gem = findNearestGem()
+            if gem then
+                -- Move to the Gem's position
+                humanoid:MoveTo(gem.Position)
+
+                -- Wait until the character reaches the destination
+                local reached = humanoid.MoveToFinished:Wait()
+                if reached and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
+                    -- Find a ProximityPrompt near the Gem
+                    for _, prompt in pairs(workspace:GetDescendants()) do
+                        if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+                            print("Interacting with ProximityPrompt near Gem!")
+                            prompt:InputHoldBegin()
+                            wait(0.5) -- Simulate interaction time
+                            prompt:InputHoldEnd()
+                            break
                         end
                     end
+                else
+                    print("Failed to reach Gem or too far away.")
                 end
+            else
+                print("No Gem to move to. Retrying in 10 seconds...")
             end
         end)
 
         if not success then
-            print("Error during interaction: " .. errorMessage)
+            print("Error during movement or interaction: " .. errorMessage)
         end
 
         wait(10) -- Retry every 10 seconds
@@ -87,7 +119,7 @@ toggleButton.MouseButton1Click:Connect(function()
     if toggleActive then
         toggleButton.Text = "Toggle Gem Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-        interactWithNearbyPrompts()
+        moveToGemAndInteract()
     else
         toggleButton.Text = "Toggle Gem Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
