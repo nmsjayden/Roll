@@ -1,4 +1,10 @@
--- Original Script Functionality
+-- Function to request auras in inventory
+local function getInventoryAuras()
+    local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+    return remotes:WaitForChild("RequestAuras"):InvokeServer() or {}
+end
+
+-- Process auras
 local function processAuras()
     local r = game:GetService("ReplicatedStorage")
     local f = r:FindFirstChild("Auras")
@@ -9,7 +15,25 @@ local function processAuras()
     end
 end
 
-local aurasToDecline = {
+-- Delete duplicate auras
+local function deleteDuplicateAuras()
+    local inventoryAuras = getInventoryAuras()
+    local auraCounts = {}
+
+    -- Count occurrences of each aura
+    for _, aura in pairs(inventoryAuras) do
+        auraCounts[aura] = (auraCounts[aura] or 0) + 1
+    end
+
+    -- Check against aurasToDelete and delete if duplicates exist
+    for _, auraName in ipairs(aurasToDelete) do
+        if auraCounts[auraName] and auraCounts[auraName] > 1 then
+            game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(auraName, tostring(auraCounts[auraName] - 1))
+        end
+    end
+end
+
+local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
@@ -26,16 +50,11 @@ end
 
 task.spawn(function()
     while true do
-        task.wait(0.01) -- Reduced the wait time to make it faster
+        task.wait(0.01) -- Faster execution
         if isScriptActive then
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
-            for _, d in ipairs(aurasToDecline) do
-                local args = {
-                    [1] = d
-                }
-                game:GetService("ReplicatedStorage").Remotes.DeclineAura:FireServer(unpack(args))
-            end
+            deleteDuplicateAuras() -- Call to handle duplicates
         end
     end
 end)
@@ -106,7 +125,7 @@ end)
 local auraTextbox = Instance.new("TextBox")
 auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
 auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
-auraTextbox.PlaceholderText = "Input Aura Name Here" -- Updated placeholder text
+auraTextbox.PlaceholderText = "Input Aura Name Here"
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = mainFrame
 
@@ -128,7 +147,7 @@ removeButton.Parent = mainFrame
 local auraListLabel = Instance.new("TextLabel")
 auraListLabel.Size = UDim2.new(0.9, 0, 0, 150)
 auraListLabel.Position = UDim2.new(0.05, 0, 0, 200)
-auraListLabel.Text = "Auras: " .. table.concat(aurasToDecline, ", ")
+auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
 auraListLabel.TextWrapped = true
 auraListLabel.TextYAlignment = Enum.TextYAlignment.Top
 auraListLabel.BackgroundTransparency = 1
@@ -138,17 +157,17 @@ auraListLabel.Parent = mainFrame
 -- Add/Remove Button Functionality
 addButton.MouseButton1Click:Connect(function()
     if auraTextbox.Text ~= "" then
-        table.insert(aurasToDecline, auraTextbox.Text)
-        auraListLabel.Text = "Auras: " .. table.concat(aurasToDecline, ", ")
+        table.insert(aurasToDelete, auraTextbox.Text)
+        auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
         auraTextbox.Text = ""
     end
 end)
 
 removeButton.MouseButton1Click:Connect(function()
-    for i, aura in ipairs(aurasToDecline) do
+    for i, aura in ipairs(aurasToDelete) do
         if aura == auraTextbox.Text then
-            table.remove(aurasToDecline, i)
-            auraListLabel.Text = "Auras: " .. table.concat(aurasToDecline, ", ")
+            table.remove(aurasToDelete, i)
+            auraListLabel.Text = "Auras: " .. table.concat(aurasToDelete, ", ")
             auraTextbox.Text = ""
             break
         end
