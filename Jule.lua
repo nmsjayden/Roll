@@ -9,7 +9,7 @@ local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame",
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Prism",
-    "Nebula", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", "GLADIATOR",
+    "Nebula", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", "Gladiator",
     "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", "Acceleration",
     "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
 }
@@ -99,25 +99,20 @@ removeAuraButton.MouseButton1Click:Connect(function()
     auraListLabel.Text = table.concat(aurasToDelete, "\n")
 end)
 
+local lockButton = Instance.new("TextButton", gui)
+lockButton.Size, lockButton.Position = UDim2.new(0, 100, 0, 40), UDim2.new(0, 10, 0, 10)
+lockButton.Text, lockButton.BackgroundColor3 = "Lock", Color3.new(0.3, 0.3, 0.8)
+lockButton.MouseButton1Click:Connect(function()
+    isLocked = not isLocked
+    frame.Draggable = not isLocked
+    lockButton.Text = isLocked and "Unlock" or "Lock"
+end)
+
 local minimizeButton = Instance.new("TextButton", frame)
 minimizeButton.Size, minimizeButton.Position = UDim2.new(0, 40, 0, 40), UDim2.new(1, -50, 0, 10)
 minimizeButton.Text, minimizeButton.BackgroundColor3 = "-", Color3.new(0.8, 0.8, 0.3)
-
-local reopenButton = Instance.new("TextButton", gui)
-reopenButton.Size, reopenButton.Position = UDim2.new(0, 50, 0, 50)
-reopenButton.Text, reopenButton.Visible = "Open", false
-reopenButton.BackgroundColor3, reopenButton.BackgroundTransparency = Color3.new(0.2, 0.2, 1), 0.5
-reopenButton.TextColor3, reopenButton.TextSize = Color3.new(1, 1, 1), 20
-reopenButton.Draggable, reopenButton.Active = true, true
-
 minimizeButton.MouseButton1Click:Connect(function()
-    isMinimized = true
-    frame.Visible = false
-    reopenButton.Visible = true
-end)
-
-reopenButton.MouseButton1Click:Connect(function()
-    isMinimized = false
-    frame.Visible = true
-    reopenButton.Visible = false
+    isMinimized = not isMinimized
+    frame.Visible = not isMinimized
+    lockButton.Visible = isMinimized
 end)
