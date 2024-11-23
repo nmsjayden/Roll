@@ -75,38 +75,35 @@ local function findNearestGem()
     return closestGem
 end
 
--- Function to move to a gem and interact with its ProximityPrompt
-local function moveToGemAndInteract()
+-- Function to teleport to the gem and interact with its ProximityPrompt
+local function teleportToGemAndInteract()
     while toggleActive do
         local success, errorMessage = pcall(function()
             local gem = findNearestGem()
             if gem then
-                -- Move to the Gem's position
-                humanoid:MoveTo(gem.Position)
+                -- Teleport to the Gem's position
+                character:SetPrimaryPartCFrame(gem.CFrame)
 
-                -- Wait until the character reaches the destination
-                local reached = humanoid.MoveToFinished:Wait()
-                if reached and (character.PrimaryPart.Position - gem.Position).Magnitude < 5 then
-                    -- Find a ProximityPrompt near the Gem
-                    for _, prompt in pairs(workspace:GetDescendants()) do
-                        if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
-                            print("Interacting with ProximityPrompt near Gem!")
-                            prompt:InputHoldBegin()
-                            wait(0.5) -- Simulate interaction time
-                            prompt:InputHoldEnd()
-                            break
-                        end
+                -- Wait a moment for the teleportation to complete
+                wait(0.5) -- Adjust as needed to ensure character is fully teleported
+
+                -- Find a ProximityPrompt near the Gem
+                for _, prompt in pairs(workspace:GetDescendants()) do
+                    if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+                        print("Interacting with ProximityPrompt near Gem!")
+                        prompt:InputHoldBegin()
+                        wait(0.5) -- Simulate interaction time
+                        prompt:InputHoldEnd()
+                        break
                     end
-                else
-                    print("Failed to reach Gem or too far away.")
                 end
             else
-                print("No Gem to move to. Retrying in 10 seconds...")
+                print("No Gem to teleport to. Retrying in 10 seconds...")
             end
         end)
 
         if not success then
-            print("Error during movement or interaction: " .. errorMessage)
+            print("Error during teleportation or interaction: " .. errorMessage)
         end
 
         wait(10) -- Retry every 10 seconds
@@ -119,7 +116,7 @@ toggleButton.MouseButton1Click:Connect(function()
     if toggleActive then
         toggleButton.Text = "Toggle Gem Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-        moveToGemAndInteract()
+        teleportToGemAndInteract()
     else
         toggleButton.Text = "Toggle Gem Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
