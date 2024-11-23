@@ -58,10 +58,10 @@ potionCountLabel.Parent = mainFrame
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Counter for uninteracted potions
-local uninteractedGemsCount = 0
-local uninteractedSpeedCount = 0
-local uninteractedUltimateCount = 0
+-- Counter for interacted potions
+local interactedGemsCount = 0
+local interactedSpeedCount = 0
+local interactedUltimateCount = 0
 local lastPrintedCount = "" -- Variable to track the last printed counts to avoid spamming
 
 -- Function to find the nearest potion (Gem, Speed, or Ultimate)
@@ -111,50 +111,29 @@ local function teleportToPotionAndInteract(potionType)
             end
 
             if interacted then
-                print("Successfully interacted with " .. potionType .. " ProximityPrompt!")
+                -- Increment the interacted count for the respective potion type
+                if potionType == "Gem" then
+                    interactedGemsCount = interactedGemsCount + 1
+                elseif potionType == "Speed" then
+                    interactedSpeedCount = interactedSpeedCount + 1
+                elseif potionType == "Ultimate" then
+                    interactedUltimateCount = interactedUltimateCount + 1
+                end
             end
         end
         wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
 end
 
--- Function to constantly update the count of uninteracted potions
+-- Function to constantly update the count of interacted potions
 local function updatePotionCount()
     while toggleActive do
-        local gemCount = 0
-        local speedCount = 0
-        local ultimateCount = 0
-
-        -- Count all potions that are not interacted with (not yet triggered by ProximityPrompt)
-        for _, obj in pairs(potionsFolder:GetChildren()) do
-            if obj:IsA("Model") then
-                local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                if potionPart then
-                    local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
-                    if distance < 10 then
-                        if obj.Name == "Gem" then
-                            gemCount = gemCount + 1
-                        elseif obj.Name == "Speed" then
-                            speedCount = speedCount + 1
-                        elseif obj.Name == "Ultimate" then
-                            ultimateCount = ultimateCount + 1
-                        end
-                    end
-                end
-            end
-        end
-
-        -- Update the potion count label and print the counts in the console
-        local currentCount = "Gems: " .. gemCount .. "\nSpeed: " .. speedCount .. "\nUltimate: " .. ultimateCount
+        -- Update the potion count label with the latest interacted counts
+        local currentCount = "Gems: " .. interactedGemsCount .. "\nSpeed: " .. interactedSpeedCount .. "\nUltimate: " .. interactedUltimateCount
         if currentCount ~= lastPrintedCount then
-            uninteractedGemsCount = gemCount
-            uninteractedSpeedCount = speedCount
-            uninteractedUltimateCount = ultimateCount
             potionCountLabel.Text = currentCount -- Update the label text
-            print("Uninteracted Potions - " .. currentCount) -- Optionally print in console for debugging
             lastPrintedCount = currentCount
         end
-
         wait(1) -- Constantly update every second
     end
 end
