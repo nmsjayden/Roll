@@ -11,8 +11,8 @@ screenGui.Parent = player:WaitForChild("PlayerGui") -- Explicitly parent to Play
 
 -- Main GUI container
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 120) -- Increased height to accommodate gem count
-mainFrame.Position = UDim2.new(0.5, -110, 0.5, -60) -- Centered on screen
+mainFrame.Size = UDim2.new(0, 220, 0, 160) -- Increased height to accommodate multiple potion counts
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -80) -- Centered on screen
 mainFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 mainFrame.Active = true
 mainFrame.Draggable = true -- Main GUI is draggable
@@ -23,7 +23,7 @@ mainFrame.Parent = screenGui
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 200, 0, 50)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.Text = "Toggle Gem Collector (Off)"
+toggleButton.Text = "Toggle Potion Collector (Off)"
 toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
 toggleButton.Parent = mainFrame
 
@@ -45,54 +45,56 @@ maximizeButton.Visible = false
 maximizeButton.Active = true
 maximizeButton.Parent = screenGui
 
--- Gem Count TextLabel
-local gemCountLabel = Instance.new("TextLabel")
-gemCountLabel.Size = UDim2.new(0, 200, 0, 40)
-gemCountLabel.Position = UDim2.new(0, 10, 0, 70) -- Position below the toggle button
-gemCountLabel.Text = "Uninteracted Gems: 0"
-gemCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-gemCountLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-gemCountLabel.BackgroundTransparency = 0.5
-gemCountLabel.Parent = mainFrame
+-- Potion Count TextLabel
+local potionCountLabel = Instance.new("TextLabel")
+potionCountLabel.Size = UDim2.new(0, 200, 0, 40)
+potionCountLabel.Position = UDim2.new(0, 10, 0, 70) -- Position below the toggle button
+potionCountLabel.Text = "Uninteracted Potions: 0 Gems, 0 Speed, 0 Ultimate"
+potionCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+potionCountLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+potionCountLabel.BackgroundTransparency = 0.5
+potionCountLabel.Parent = mainFrame
 
 -- Reference to the Potions folder in Workspace > Game > Potions
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Counter for uninteracted gems
+-- Counter for uninteracted potions
 local uninteractedGemsCount = 0
-local lastPrintedCount = -1 -- Variable to track the last printed count to avoid spamming
+local uninteractedSpeedCount = 0
+local uninteractedUltimateCount = 0
+local lastPrintedCount = "" -- Variable to track the last printed counts to avoid spamming
 
--- Function to find the nearest gem
-local function findNearestGem()
-    local closestGem = nil
+-- Function to find the nearest potion (Gem, Speed, or Ultimate)
+local function findNearestPotion(potionType)
+    local closestPotion = nil
     local closestDistance = math.huge
 
     for _, obj in pairs(potionsFolder:GetChildren()) do
-        if obj:IsA("Model") and obj.Name == "Gem" then
-            local gemPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-            if gemPart then
-                local distance = (character.PrimaryPart.Position - gemPart.Position).Magnitude
+        if obj:IsA("Model") and obj.Name == potionType then
+            local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+            if potionPart then
+                local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
                 if distance < closestDistance then
                     closestDistance = distance
-                    closestGem = gemPart
+                    closestPotion = potionPart
                 end
             end
         end
     end
 
-    return closestGem
+    return closestPotion
 end
 
--- Function to teleport to the gem and instantly interact with its ProximityPrompt
-local function teleportToGemAndInteract()
+-- Function to teleport to the potion and instantly interact with its ProximityPrompt
+local function teleportToPotionAndInteract(potionType)
     while toggleActive do
-        local gem = findNearestGem()
-        if gem then
-            -- Teleport to the Gem's position, slightly raised to avoid colliding with the ground
-            local newPosition = gem.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the Gem's position
+        local potion = findNearestPotion(potionType)
+        if potion then
+            -- Teleport to the Potion's position, slightly raised to avoid colliding with the ground
+            local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the Potion's position
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-            -- Immediately interact with a ProximityPrompt near the Gem
+            -- Immediately interact with a ProximityPrompt near the Potion
             local interacted = false
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
@@ -105,37 +107,48 @@ local function teleportToGemAndInteract()
             end
 
             if interacted then
-                print("Successfully interacted with the ProximityPrompt!")
+                print("Successfully interacted with " .. potionType .. " ProximityPrompt!")
             end
         end
         wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
 end
 
--- Retry the gem search every 10 seconds and count uninteracted gems
-local function retryGemSearch()
+-- Retry the potion search every 10 seconds and count uninteracted potions
+local function retryPotionSearch()
     while toggleActive do
-        wait(10) -- Retry searching for gems every 10 seconds
+        wait(10) -- Retry searching for potions every 10 seconds
         local gemCount = 0
+        local speedCount = 0
+        local ultimateCount = 0
 
-        -- Count all gems that are not interacted with (not yet triggered by ProximityPrompt)
+        -- Count all potions that are not interacted with (not yet triggered by ProximityPrompt)
         for _, obj in pairs(potionsFolder:GetChildren()) do
-            if obj:IsA("Model") and obj.Name == "Gem" then
-                local gemPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                if gemPart then
-                    local distance = (character.PrimaryPart.Position - gemPart.Position).Magnitude
+            if obj:IsA("Model") then
+                local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                if potionPart then
+                    local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
                     if distance < 10 then
-                        gemCount = gemCount + 1
+                        if obj.Name == "Gem" then
+                            gemCount = gemCount + 1
+                        elseif obj.Name == "Speed" then
+                            speedCount = speedCount + 1
+                        elseif obj.Name == "Ultimate" then
+                            ultimateCount = ultimateCount + 1
+                        end
                     end
                 end
             end
         end
 
-        -- Update and print the number of uninteracted gems only if it has changed
-        if gemCount ~= lastPrintedCount then
+        -- Update and print the number of uninteracted potions only if it has changed
+        local currentCount = gemCount .. " Gems, " .. speedCount .. " Speed, " .. ultimateCount .. " Ultimate"
+        if currentCount ~= lastPrintedCount then
             uninteractedGemsCount = gemCount
-            gemCountLabel.Text = "Uninteracted Gems: " .. uninteractedGemsCount -- Update the label text
-            lastPrintedCount = gemCount
+            uninteractedSpeedCount = speedCount
+            uninteractedUltimateCount = ultimateCount
+            potionCountLabel.Text = "Uninteracted Potions: " .. currentCount -- Update the label text
+            lastPrintedCount = currentCount
         end
     end
 end
@@ -144,12 +157,14 @@ end
 toggleButton.MouseButton1Click:Connect(function()
     toggleActive = not toggleActive
     if toggleActive then
-        toggleButton.Text = "Toggle Gem Collector (On)"
+        toggleButton.Text = "Toggle Potion Collector (On)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
-        teleportToGemAndInteract()
-        retryGemSearch() -- Start retrying gem search every 10 seconds
+        teleportToPotionAndInteract("Gem")
+        teleportToPotionAndInteract("Speed")
+        teleportToPotionAndInteract("Ultimate")
+        retryPotionSearch() -- Start retrying potion search every 10 seconds
     else
-        toggleButton.Text = "Toggle Gem Collector (Off)"
+        toggleButton.Text = "Toggle Potion Collector (Off)"
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
     end
 end)
@@ -184,14 +199,4 @@ maximizeButton.InputChanged:Connect(function(input)
         maximizeButton.Position = UDim2.new(
             startPos.X.Scale,
             startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-maximizeButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
+            startPos.Y.Scale
