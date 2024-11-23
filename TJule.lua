@@ -41,6 +41,8 @@ maximizeButton.Position = UDim2.new(0.5, -10, 0.5, 50)
 maximizeButton.Text = "+"
 maximizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 maximizeButton.Visible = false
+maximizeButton.Active = true
+maximizeButton.Draggable = true -- Make the button movable
 maximizeButton.Parent = screenGui
 
 -- Reference to the potions folder
@@ -130,5 +132,4 @@ end)
 
 maximizeButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = true
-    maximizeButton.Visible = false
-end)
+    maximizeButton
