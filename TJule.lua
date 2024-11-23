@@ -95,11 +95,7 @@ local function teleportToGemAndInteract()
 
             if interacted then
                 print("Successfully interacted with the ProximityPrompt!")
-            else
-                print("No ProximityPrompt found nearby.")
             end
-        else
-            print("No Gem to teleport to. Waiting for next retry...")
         end
         wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
