@@ -1,21 +1,19 @@
--- Function to request auras in inventory
+-- Function to fetch the player's inventory auras
 local function getInventoryAuras()
     local remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
-    return remotes:WaitForChild("RequestAuras"):InvokeServer() or {}
-end
-
--- Process auras
-local function processAuras()
-    local r = game:GetService("ReplicatedStorage")
-    local f = r:FindFirstChild("Auras")
-    if f then
-        for _, b in pairs(f:GetChildren()) do
-            r.Remotes.AcceptAura:FireServer(b.Name, true)
-        end
+    local success, inventoryAuras = pcall(function()
+        return remotes:WaitForChild("RequestAuras"):InvokeServer()
+    end)
+    if success then
+        print("Successfully fetched inventory auras.")
+        return inventoryAuras or {}
+    else
+        warn("Failed to fetch inventory auras.")
+        return {}
     end
 end
 
--- Delete duplicate auras
+-- Function to delete duplicate auras
 local function deleteDuplicateAuras()
     local inventoryAuras = getInventoryAuras()
     local auraCounts = {}
@@ -25,14 +23,17 @@ local function deleteDuplicateAuras()
         auraCounts[aura] = (auraCounts[aura] or 0) + 1
     end
 
-    -- Check against aurasToDelete and delete if duplicates exist
+    -- Check and delete duplicates
     for _, auraName in ipairs(aurasToDelete) do
         if auraCounts[auraName] and auraCounts[auraName] > 1 then
-            game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(auraName, tostring(auraCounts[auraName] - 1))
+            local excess = auraCounts[auraName] - 1
+            print("Deleting " .. excess .. " excess copies of " .. auraName)
+            game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(auraName, tostring(excess))
         end
     end
 end
 
+-- Auras to delete
 local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
@@ -43,18 +44,18 @@ local aurasToDelete = {
 }
 local isScriptActive = false
 
--- Script Toggle Behavior
+-- Toggle script behavior
 local function toggleScript()
     isScriptActive = not isScriptActive
 end
 
+-- Main loop for processing auras and deleting duplicates
 task.spawn(function()
     while true do
-        task.wait(0.01) -- Faster execution
+        task.wait(0.1)
         if isScriptActive then
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
-            processAuras()
-            deleteDuplicateAuras() -- Call to handle duplicates
+            deleteDuplicateAuras()
         end
     end
 end)
@@ -73,7 +74,7 @@ mainFrame.Active = true
 mainFrame.Visible = true
 mainFrame.Parent = gui
 
--- Header with Hide Button
+-- Header with hide button
 local header = Instance.new("Frame")
 header.Size = UDim2.new(1, 0, 0, 40)
 header.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
@@ -107,7 +108,7 @@ showButton.MouseButton1Click:Connect(function()
     showButton.Visible = false
 end)
 
--- Script Toggle Button
+-- Script toggle button
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0.9, 0, 0, 40)
 toggleButton.Position = UDim2.new(0.05, 0, 0, 50)
@@ -121,7 +122,7 @@ toggleButton.MouseButton1Click:Connect(function()
     toggleButton.BackgroundColor3 = isScriptActive and Color3.new(0.3, 0.8, 0.3) or Color3.new(0.8, 0.3, 0.3)
 end)
 
--- Aura Management Textbox and Buttons
+-- Aura management TextBox and buttons
 local auraTextbox = Instance.new("TextBox")
 auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
 auraTextbox.Position = UDim2.new(0.05, 0, 0, 100)
@@ -143,7 +144,6 @@ removeButton.Text = "Remove Aura"
 removeButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
 removeButton.Parent = mainFrame
 
--- Aura List
 local auraListLabel = Instance.new("TextLabel")
 auraListLabel.Size = UDim2.new(0.9, 0, 0, 150)
 auraListLabel.Position = UDim2.new(0.05, 0, 0, 200)
@@ -154,7 +154,7 @@ auraListLabel.BackgroundTransparency = 1
 auraListLabel.TextColor3 = Color3.new(1, 1, 1)
 auraListLabel.Parent = mainFrame
 
--- Add/Remove Button Functionality
+-- Add/Remove buttons functionality
 addButton.MouseButton1Click:Connect(function()
     if auraTextbox.Text ~= "" then
         table.insert(aurasToDelete, auraTextbox.Text)
