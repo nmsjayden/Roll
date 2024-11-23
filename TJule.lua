@@ -77,10 +77,8 @@ local function findNearestPotion()
     return closestPotion
 end
 
--- Function to teleport to the potion and instantly interact with its ProximityPrompt
+-- Function to teleport to the potion and interact with its ProximityPrompt continuously
 local function teleportToPotionAndInteract()
-    local interacted = false
-
     while toggleActive do
         local potion = findNearestPotion()
         if potion then
@@ -91,14 +89,11 @@ local function teleportToPotionAndInteract()
             -- Interact with ProximityPrompt near the potion
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - currentCharacter.PrimaryPart.Position).Magnitude < 10 then
-                    -- Trigger the ProximityPrompt interaction once
-                    if not interacted then
-                        prompt:InputHoldBegin()
-                        prompt:InputHoldEnd()  -- Instantly trigger the interaction without delay
-                        interacted = true
-                        print("Successfully interacted with the ProximityPrompt!")
-                    end
-                    break
+                    -- Instantly trigger the ProximityPrompt interaction (without delay)
+                    prompt:InputHoldBegin()
+                    prompt:InputHoldEnd()  -- This allows continuous interaction as long as the player is within range
+                    print("Successfully interacted with the ProximityPrompt!")
+                    break -- Break to ensure only one interaction per potion
                 end
             end
         end
