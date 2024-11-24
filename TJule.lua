@@ -31,7 +31,7 @@ local function teleportToPotionAndInteract(character)
         local potion = findNearestPotion(character)
         if potion then
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
-            local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
+            local newPosition = potion.Position + Vector3.new(0, 1, 0) -- Adjust height to 5 studs above the potion's position
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the potion
