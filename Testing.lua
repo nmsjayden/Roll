@@ -97,104 +97,156 @@ local function onCharacterAdded(newCharacter)
 end
 player.CharacterAdded:Connect(onCharacterAdded)
 
--- Main GUI creation
+-- GUI Creation
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = game:GetService("CoreGui")
-screenGui.Name = "AuraPotionGUI"
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 400, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -200, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-mainFrame.Parent = screenGui
-mainFrame.Visible = true
-
+mainFrame.Size = UDim2.new(0, 400, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.Active = true
 mainFrame.Draggable = true
+mainFrame.Parent = screenGui
 
--- Tabs
-local tabButtonsFrame = Instance.new("Frame")
-tabButtonsFrame.Size = UDim2.new(0, 400, 0, 50)
-tabButtonsFrame.Position = UDim2.new(0, 0, 0, 0)
-tabButtonsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-tabButtonsFrame.Parent = mainFrame
+local tabsFrame = Instance.new("Frame")
+tabsFrame.Size = UDim2.new(1, 0, 0, 40)
+tabsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+tabsFrame.Parent = mainFrame
 
-local auraTabButton = Instance.new("TextButton")
-auraTabButton.Size = UDim2.new(0.33, 0, 1, 0)
-auraTabButton.Position = UDim2.new(0, 0, 0, 0)
-auraTabButton.Text = "Aura Management"
-auraTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-auraTabButton.Parent = tabButtonsFrame
+local auraButton = Instance.new("TextButton")
+auraButton.Size = UDim2.new(0.5, -5, 1, 0)
+auraButton.Position = UDim2.new(0, 0, 0, 0)
+auraButton.Text = "Aura Management"
+auraButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+auraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+auraButton.Parent = tabsFrame
 
-local potionTabButton = Instance.new("TextButton")
-potionTabButton.Size = UDim2.new(0.33, 0, 1, 0)
-potionTabButton.Position = UDim2.new(0.33, 0, 0, 0)
-potionTabButton.Text = "Potion Collector"
-potionTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-potionTabButton.Parent = tabButtonsFrame
+local potionButton = Instance.new("TextButton")
+potionButton.Size = UDim2.new(0.5, -5, 1, 0)
+potionButton.Position = UDim2.new(0.5, 5, 0, 0)
+potionButton.Text = "Potion Collector"
+potionButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+potionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+potionButton.Parent = tabsFrame
 
-local settingsTabButton = Instance.new("TextButton")
-settingsTabButton.Size = UDim2.new(0.33, 0, 1, 0)
-settingsTabButton.Position = UDim2.new(0.66, 0, 0, 0)
-settingsTabButton.Text = "Settings"
-settingsTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-settingsTabButton.Parent = tabButtonsFrame
-
--- Frames for each tab
 local auraFrame = Instance.new("Frame")
-auraFrame.Size = UDim2.new(1, 0, 1, -50)
-auraFrame.Position = UDim2.new(0, 0, 0, 50)
+auraFrame.Size = UDim2.new(1, 0, 1, -40)
+auraFrame.Position = UDim2.new(0, 0, 0, 40)
 auraFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-auraFrame.Parent = mainFrame
 auraFrame.Visible = true
+auraFrame.Parent = mainFrame
 
 local potionFrame = Instance.new("Frame")
-potionFrame.Size = UDim2.new(1, 0, 1, -50)
-potionFrame.Position = UDim2.new(0, 0, 0, 50)
+potionFrame.Size = UDim2.new(1, 0, 1, -40)
+potionFrame.Position = UDim2.new(0, 0, 0, 40)
 potionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-potionFrame.Parent = mainFrame
 potionFrame.Visible = false
+potionFrame.Parent = mainFrame
 
-local settingsFrame = Instance.new("Frame")
-settingsFrame.Size = UDim2.new(1, 0, 1, -50)
-settingsFrame.Position = UDim2.new(0, 0, 0, 50)
-settingsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-settingsFrame.Parent = mainFrame
-settingsFrame.Visible = false
+-- Aura Management UI
+local toggleAuraScriptButton = Instance.new("TextButton")
+toggleAuraScriptButton.Size = UDim2.new(0.9, 0, 0, 40)
+toggleAuraScriptButton.Position = UDim2.new(0.05, 0, 0, 20)
+toggleAuraScriptButton.Text = "Toggle Aura Script"
+toggleAuraScriptButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+toggleAuraScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleAuraScriptButton.Parent = auraFrame
 
--- Unload Script button in settings tab
-local unloadButton = Instance.new("TextButton")
-unloadButton.Size = UDim2.new(0.5, 0, 0, 50)
-unloadButton.Position = UDim2.new(0.25, 0, 0.4, 0)
-unloadButton.Text = "Unload Script"
-unloadButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
-unloadButton.Parent = settingsFrame
+local auraTextbox = Instance.new("TextBox")
+auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
+auraTextbox.Position = UDim2.new(0.05, 0, 0, 70)
+auraTextbox.PlaceholderText = "Input Aura Name"
+auraTextbox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+auraTextbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+auraTextbox.Parent = auraFrame
 
-unloadButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()  -- Unload the script (destroys the GUI)
+local toggleAuraButton = Instance.new("TextButton")
+toggleAuraButton.Size = UDim2.new(0.9, 0, 0, 40)
+toggleAuraButton.Position = UDim2.new(0.05, 0, 0, 120)
+toggleAuraButton.Text = "Add/Remove Aura"
+toggleAuraButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+toggleAuraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleAuraButton.Parent = auraFrame
+
+local sideTabFrame = Instance.new("Frame")
+sideTabFrame.Size = UDim2.new(0, 100, 1, 0)  -- Reduced width of the side tab
+sideTabFrame.Position = UDim2.new(1, 0, 0, 0)
+sideTabFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+sideTabFrame.Visible = false
+sideTabFrame.Parent = auraFrame
+
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+scrollFrame.Position = UDim2.new(0, 0, 0, 0)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)
+scrollFrame.ScrollBarThickness = 10
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.Parent = sideTabFrame
+
+local auraListLabel = Instance.new("TextLabel")
+auraListLabel.Size = UDim2.new(1, 0, 0, 1000)  -- Fixed size for the list
+auraListLabel.Text = ""
+auraListLabel.BackgroundTransparency = 1
+auraListLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+auraListLabel.TextScaled = true
+auraListLabel.TextWrapped = true
+auraListLabel.TextSize = 24  -- Increased text size
+auraListLabel.Parent = scrollFrame
+
+-- Update the aura list dynamically
+local function updateAuraList()
+    auraListLabel.Text = table.concat(aurasToDelete, "\n")
+end
+
+toggleAuraScriptButton.MouseButton1Click:Connect(function()
+    isAuraScriptActive = not isAuraScriptActive
+    toggleAuraScriptButton.Text = isAuraScriptActive and "Aura Script On" or "Aura Script Off"
+    toggleAuraScriptButton.BackgroundColor3 = isAuraScriptActive and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(70, 70, 70)
 end)
 
--- Show different frames based on selected tab
-auraTabButton.MouseButton1Click:Connect(function()
+toggleAuraButton.MouseButton1Click:Connect(function()
+    local auraName = auraTextbox.Text
+    if auraName ~= "" then
+        -- Toggle aura presence in the list and update the button accordingly
+        local auraIndex = table.find(aurasToDelete, auraName)
+        if auraIndex then
+            table.remove(aurasToDelete, auraIndex)
+        else
+            table.insert(aurasToDelete, auraName)
+        end
+        updateAuraList()  -- Update the side tab aura list
+    end
+end)
+
+-- Potion Collector Button
+local togglePotionButton = Instance.new("TextButton")
+togglePotionButton.Size = UDim2.new(0.9, 0, 0, 40)
+togglePotionButton.Position = UDim2.new(0.05, 0, 0, 20)
+togglePotionButton.Text = "Start Potion Collector"
+togglePotionButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+togglePotionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+togglePotionButton.Parent = potionFrame
+
+togglePotionButton.MouseButton1Click:Connect(function()
+    toggleActive = not toggleActive
+    togglePotionButton.Text = toggleActive and "Potion Collector On" or "Start Potion Collector"
+    togglePotionButton.BackgroundColor3 = toggleActive and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(70, 70, 70)
+
+    if toggleActive and player.Character then
+        teleportToPotionAndInteract(player.Character)
+    end
+end)
+
+-- Tab Switching Logic
+auraButton.MouseButton1Click:Connect(function()
     auraFrame.Visible = true
     potionFrame.Visible = false
-    settingsFrame.Visible = false
+    sideTabFrame.Visible = true -- Show side tab with aura list
 end)
 
-potionTabButton.MouseButton1Click:Connect(function()
+potionButton.MouseButton1Click:Connect(function()
     auraFrame.Visible = false
     potionFrame.Visible = true
-    settingsFrame.Visible = false
+    sideTabFrame.Visible = false -- Hide side tab when not in Aura Management
 end)
-
-settingsTabButton.MouseButton1Click:Connect(function()
-    auraFrame.Visible = false
-    potionFrame.Visible = false
-    settingsFrame.Visible = true
-end)
-
--- Aura Management (using previous code as reference)
--- (Aura Management GUI elements such as buttons, text boxes, and list are already handled in your provided code)
-
--- Potion Collector (using previous code as reference)
--- (Potion Collector buttons, logic, etc. are already handled in your provided code)
