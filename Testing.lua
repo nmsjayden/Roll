@@ -170,34 +170,22 @@ toggleAuraButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleAuraButton.Parent = auraFrame
 
 local sideTabFrame = Instance.new("Frame")
-sideTabFrame.Size = UDim2.new(0, 100, 1, 0)  -- Reduced width of the side tab
+sideTabFrame.Size = UDim2.new(0, 150, 1, 0)
 sideTabFrame.Position = UDim2.new(1, 0, 0, 0)
 sideTabFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 sideTabFrame.Visible = false
 sideTabFrame.Parent = auraFrame
 
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, 0, 1, 0)
-scrollFrame.Position = UDim2.new(0, 0, 0, 0)
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1000)
-scrollFrame.ScrollBarThickness = 10
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.Parent = sideTabFrame
-
 local auraListLabel = Instance.new("TextLabel")
-auraListLabel.Size = UDim2.new(1, 0, 0, 1000)  -- Fixed size for the list
-auraListLabel.Text = ""
-auraListLabel.BackgroundTransparency = 1
+auraListLabel.Size = UDim2.new(1, 0, 1, 0)
+auraListLabel.Position = UDim2.new(0, 0, 0, 0)
+auraListLabel.Text = "Aura List\n" .. table.concat(aurasToDelete, "\n")
+auraListLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 auraListLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 auraListLabel.TextScaled = true
 auraListLabel.TextWrapped = true
-auraListLabel.TextSize = 24  -- Increased text size
-auraListLabel.Parent = scrollFrame
-
--- Update the aura list dynamically
-local function updateAuraList()
-    auraListLabel.Text = table.concat(aurasToDelete, "\n")
-end
+auraListLabel.TextSize = 20
+auraListLabel.Parent = sideTabFrame
 
 toggleAuraScriptButton.MouseButton1Click:Connect(function()
     isAuraScriptActive = not isAuraScriptActive
@@ -212,10 +200,11 @@ toggleAuraButton.MouseButton1Click:Connect(function()
         local auraIndex = table.find(aurasToDelete, auraName)
         if auraIndex then
             table.remove(aurasToDelete, auraIndex)
+            toggleAuraButton.Text = "Aura Removed"
         else
             table.insert(aurasToDelete, auraName)
+            toggleAuraButton.Text = "Aura Added"
         end
-        updateAuraList()  -- Update the side tab aura list
     end
 end)
 
