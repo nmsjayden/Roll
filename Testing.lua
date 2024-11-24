@@ -97,109 +97,104 @@ local function onCharacterAdded(newCharacter)
 end
 player.CharacterAdded:Connect(onCharacterAdded)
 
--- Base GUI setup
-local gui = Instance.new("ScreenGui")
-gui.Parent = game:GetService("CoreGui") -- Prevent unloading on reset
-gui.Name = "AuraControlGUI"
+-- Main GUI creation
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game:GetService("CoreGui")
+screenGui.Name = "AuraPotionGUI"
 
--- Main frame of the GUI
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-mainFrame.Draggable = true
-mainFrame.Active = true
+mainFrame.Size = UDim2.new(0, 400, 0, 400)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -200)
+mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+mainFrame.Parent = screenGui
 mainFrame.Visible = true
-mainFrame.Parent = gui
 
--- Header with Hide Button
-local header = Instance.new("Frame")
-header.Size = UDim2.new(1, 0, 0, 40)
-header.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-header.Parent = mainFrame
+mainFrame.Active = true
+mainFrame.Draggable = true
 
--- Tab Buttons for Navigation
+-- Tabs
 local tabButtonsFrame = Instance.new("Frame")
-tabButtonsFrame.Size = UDim2.new(0, 300, 0, 40)
-tabButtonsFrame.Position = UDim2.new(0, 0, 0, 40)
-tabButtonsFrame.BackgroundTransparency = 1
+tabButtonsFrame.Size = UDim2.new(0, 400, 0, 50)
+tabButtonsFrame.Position = UDim2.new(0, 0, 0, 0)
+tabButtonsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 tabButtonsFrame.Parent = mainFrame
 
 local auraTabButton = Instance.new("TextButton")
-auraTabButton.Size = UDim2.new(0, 100, 0, 40)
+auraTabButton.Size = UDim2.new(0.33, 0, 1, 0)
 auraTabButton.Position = UDim2.new(0, 0, 0, 0)
 auraTabButton.Text = "Aura Management"
-auraTabButton.BackgroundColor3 = Color3.new(0.3, 0.5, 0.8)
+auraTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 auraTabButton.Parent = tabButtonsFrame
 
 local potionTabButton = Instance.new("TextButton")
-potionTabButton.Size = UDim2.new(0, 100, 0, 40)
-potionTabButton.Position = UDim2.new(0, 100, 0, 0)
+potionTabButton.Size = UDim2.new(0.33, 0, 1, 0)
+potionTabButton.Position = UDim2.new(0.33, 0, 0, 0)
 potionTabButton.Text = "Potion Collector"
-potionTabButton.BackgroundColor3 = Color3.new(0.3, 0.8, 0.3)
+potionTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 potionTabButton.Parent = tabButtonsFrame
 
 local settingsTabButton = Instance.new("TextButton")
-settingsTabButton.Size = UDim2.new(0, 100, 0, 40)
-settingsTabButton.Position = UDim2.new(0, 200, 0, 0)
+settingsTabButton.Size = UDim2.new(0.33, 0, 1, 0)
+settingsTabButton.Position = UDim2.new(0.66, 0, 0, 0)
 settingsTabButton.Text = "Settings"
-settingsTabButton.BackgroundColor3 = Color3.new(0.8, 0.8, 0.2)
+settingsTabButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 settingsTabButton.Parent = tabButtonsFrame
 
--- Aura Management Tab
-local auraTabFrame = Instance.new("Frame")
-auraTabFrame.Size = UDim2.new(0, 300, 0, 360)
-auraTabFrame.Position = UDim2.new(0, 0, 0, 80)
-auraTabFrame.BackgroundTransparency = 1
-auraTabFrame.Visible = false
-auraTabFrame.Parent = mainFrame
+-- Frames for each tab
+local auraFrame = Instance.new("Frame")
+auraFrame.Size = UDim2.new(1, 0, 1, -50)
+auraFrame.Position = UDim2.new(0, 0, 0, 50)
+auraFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+auraFrame.Parent = mainFrame
+auraFrame.Visible = true
 
--- Potion Collector Tab
-local potionTabFrame = Instance.new("Frame")
-potionTabFrame.Size = UDim2.new(0, 300, 0, 360)
-potionTabFrame.Position = UDim2.new(0, 0, 0, 80)
-potionTabFrame.BackgroundTransparency = 1
-potionTabFrame.Visible = false
-potionTabFrame.Parent = mainFrame
+local potionFrame = Instance.new("Frame")
+potionFrame.Size = UDim2.new(1, 0, 1, -50)
+potionFrame.Position = UDim2.new(0, 0, 0, 50)
+potionFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+potionFrame.Parent = mainFrame
+potionFrame.Visible = false
 
--- Settings Tab
-local settingsTabFrame = Instance.new("Frame")
-settingsTabFrame.Size = UDim2.new(0, 300, 0, 360)
-settingsTabFrame.Position = UDim2.new(0, 0, 0, 80)
-settingsTabFrame.BackgroundTransparency = 1
-settingsTabFrame.Visible = false
-settingsTabFrame.Parent = mainFrame
+local settingsFrame = Instance.new("Frame")
+settingsFrame.Size = UDim2.new(1, 0, 1, -50)
+settingsFrame.Position = UDim2.new(0, 0, 0, 50)
+settingsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+settingsFrame.Parent = mainFrame
+settingsFrame.Visible = false
 
--- Unload Script Button for Settings Tab
+-- Unload Script button in settings tab
 local unloadButton = Instance.new("TextButton")
-unloadButton.Size = UDim2.new(0.9, 0, 0, 40)
-unloadButton.Position = UDim2.new(0.05, 0, 0, 50)
+unloadButton.Size = UDim2.new(0.5, 0, 0, 50)
+unloadButton.Position = UDim2.new(0.25, 0, 0.4, 0)
 unloadButton.Text = "Unload Script"
-unloadButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
-unloadButton.Parent = settingsTabFrame
+unloadButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+unloadButton.Parent = settingsFrame
 
 unloadButton.MouseButton1Click:Connect(function()
-    gui:Destroy() -- This will remove the GUI and stop the script
+    screenGui:Destroy()  -- Unload the script (destroys the GUI)
 end)
 
--- Tab Switching Logic
+-- Show different frames based on selected tab
 auraTabButton.MouseButton1Click:Connect(function()
-    auraTabFrame.Visible = true
-    potionTabFrame.Visible = false
-    settingsTabFrame.Visible = false
+    auraFrame.Visible = true
+    potionFrame.Visible = false
+    settingsFrame.Visible = false
 end)
 
 potionTabButton.MouseButton1Click:Connect(function()
-    auraTabFrame.Visible = false
-    potionTabFrame.Visible = true
-    settingsTabFrame.Visible = false
+    auraFrame.Visible = false
+    potionFrame.Visible = true
+    settingsFrame.Visible = false
 end)
 
 settingsTabButton.MouseButton1Click:Connect(function()
-    auraTabFrame.Visible = false
-    potionTabFrame.Visible = false
-    settingsTabFrame.Visible = true
+    auraFrame.Visible = false
+    potionFrame.Visible = false
+    settingsFrame.Visible = true
 end)
 
--- Initially show Aura Management Tab
-auraTabFrame.Visible = true
+-- Aura Management (using previous code as reference)
+-- (Aura Management GUI elements such as buttons, text boxes, and list are already handled in your provided code)
+
+-- Potion Collector (using previous code as reference)
+-- (Potion Collector buttons, logic, etc. are already handled in your provided code)
