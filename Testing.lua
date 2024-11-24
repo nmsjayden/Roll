@@ -7,33 +7,51 @@ local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
 -- Variables
-local aurasToDelete = {
-    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
-    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame",
-    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Prism",
-    "Nebula", "Cupid", "Storm", "Aurora", "Infernal", "Azure Periastron", "GLADIATOR",
-    "Neptune", "Constellation", "Reborn", "Storm: True Form", "Omniscient", "Acceleration",
-    "Grim Reaper", "Infinity", "Prismatic", "Eternal", "Serenity", "Sakura"
-}
+local aurasToDelete = {}
 local isAuraScriptActive = false
 local potionCollectorActive = false
+local dragging, dragStart, startPos
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui")
 gui.Parent = game:GetService("CoreGui")
-gui.Name = "CombinedGUI"
+gui.Name = "CompactAuraPotionGUI"
 
 -- Main Frame
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 400, 0, 500)
-mainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+mainFrame.Size = UDim2.new(0, 300, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
 mainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = false
 mainFrame.Parent = gui
+
+-- Dragging functionality
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+mainFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
 
 -- Tabs
 local tabsFrame = Instance.new("Frame")
-tabsFrame.Size = UDim2.new(1, 0, 0, 40)
+tabsFrame.Size = UDim2.new(1, 0, 0, 30)
 tabsFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 tabsFrame.BorderSizePixel = 0
 tabsFrame.Parent = mainFrame
@@ -56,15 +74,15 @@ potionTabButton.Parent = tabsFrame
 
 -- Aura Management Tab
 local auraTabFrame = Instance.new("Frame")
-auraTabFrame.Size = UDim2.new(1, 0, 1, -40)
-auraTabFrame.Position = UDim2.new(0, 0, 0, 40)
+auraTabFrame.Size = UDim2.new(1, 0, 1, -30)
+auraTabFrame.Position = UDim2.new(0, 0, 0, 30)
 auraTabFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 auraTabFrame.Visible = true
 auraTabFrame.Parent = mainFrame
 
 -- "On" Button for Aura Management
 local auraScriptToggleButton = Instance.new("TextButton")
-auraScriptToggleButton.Size = UDim2.new(0.9, 0, 0, 40)
+auraScriptToggleButton.Size = UDim2.new(0.9, 0, 0, 30)
 auraScriptToggleButton.Position = UDim2.new(0.05, 0, 0, 10)
 auraScriptToggleButton.Text = "Aura Script: OFF"
 auraScriptToggleButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
@@ -78,19 +96,44 @@ end)
 
 -- Textbox for Aura Name
 local auraTextbox = Instance.new("TextBox")
-auraTextbox.Size = UDim2.new(0.9, 0, 0, 40)
-auraTextbox.Position = UDim2.new(0.05, 0, 0, 60)
+auraTextbox.Size = UDim2.new(0.9, 0, 0, 30)
+auraTextbox.Position = UDim2.new(0.05, 0, 0, 50)
 auraTextbox.PlaceholderText = "Enter Aura Name"
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = auraTabFrame
 
 -- Combined Add/Remove Aura Button
 local addRemoveAuraButton = Instance.new("TextButton")
-addRemoveAuraButton.Size = UDim2.new(0.9, 0, 0, 40)
-addRemoveAuraButton.Position = UDim2.new(0.05, 0, 0, 110)
+addRemoveAuraButton.Size = UDim2.new(0.9, 0, 0, 30)
+addRemoveAuraButton.Position = UDim2.new(0.05, 0, 0, 90)
 addRemoveAuraButton.Text = "Add/Remove Aura"
 addRemoveAuraButton.BackgroundColor3 = Color3.new(0.3, 0.5, 0.8)
 addRemoveAuraButton.Parent = auraTabFrame
+
+-- Aura List Display
+local auraListFrame = Instance.new("ScrollingFrame")
+auraListFrame.Size = UDim2.new(0.9, 0, 0.6, -130)
+auraListFrame.Position = UDim2.new(0.05, 0, 0, 130)
+auraListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+auraListFrame.ScrollBarThickness = 8
+auraListFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+auraListFrame.Parent = auraTabFrame
+
+local auraListLayout = Instance.new("UIListLayout")
+auraListLayout.Parent = auraListFrame
+
+local function updateAuraList()
+    auraListFrame:ClearAllChildren()
+    for _, aura in ipairs(aurasToDelete) do
+        local auraLabel = Instance.new("TextLabel")
+        auraLabel.Size = UDim2.new(1, 0, 0, 20)
+        auraLabel.Text = aura
+        auraLabel.TextColor3 = Color3.new(1, 1, 1)
+        auraLabel.BackgroundTransparency = 1
+        auraLabel.Parent = auraListFrame
+    end
+    auraListFrame.CanvasSize = UDim2.new(0, 0, 0, #aurasToDelete * 20)
+end
 
 addRemoveAuraButton.MouseButton1Click:Connect(function()
     local auraName = auraTextbox.Text
@@ -106,22 +149,21 @@ addRemoveAuraButton.MouseButton1Click:Connect(function()
         if not found then
             table.insert(aurasToDelete, auraName)
         end
-        -- Update Aura List
-        print("Auras to delete: " .. table.concat(aurasToDelete, ", "))
+        updateAuraList()
     end
 end)
 
 -- Potion Collector Tab
 local potionTabFrame = Instance.new("Frame")
-potionTabFrame.Size = UDim2.new(1, 0, 1, -40)
-potionTabFrame.Position = UDim2.new(0, 0, 0, 40)
+potionTabFrame.Size = UDim2.new(1, 0, 1, -30)
+potionTabFrame.Position = UDim2.new(0, 0, 0, 30)
 potionTabFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 potionTabFrame.Visible = false
 potionTabFrame.Parent = mainFrame
 
 -- Potion Collector Toggle Button
 local potionCollectorButton = Instance.new("TextButton")
-potionCollectorButton.Size = UDim2.new(0.9, 0, 0, 40)
+potionCollectorButton.Size = UDim2.new(0.9, 0, 0, 30)
 potionCollectorButton.Position = UDim2.new(0.05, 0, 0, 10)
 potionCollectorButton.Text = "Potion Collector: OFF"
 potionCollectorButton.BackgroundColor3 = Color3.new(0.8, 0.3, 0.3)
@@ -140,6 +182,6 @@ auraTabButton.MouseButton1Click:Connect(function()
 end)
 
 potionTabButton.MouseButton1Click:Connect(function()
-    potionTabFrame.Visible = true
     auraTabFrame.Visible = false
+    potionTabFrame.Visible = true
 end)
