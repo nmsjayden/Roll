@@ -6,4 +6,5 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/h
 💎Gem Teleport Script💎:
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/TJule.lua"))();
 
-
+Testing Script:
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Testing.lua"))();
