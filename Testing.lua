@@ -84,11 +84,11 @@ auraTextbox.PlaceholderText = "Enter Aura Name"
 auraTextbox.BackgroundColor3 = Color3.new(0.9, 0.9, 0.9)
 auraTextbox.Parent = auraTabFrame
 
--- Add/Remove Button
+-- Combined Add/Remove Aura Button
 local addRemoveAuraButton = Instance.new("TextButton")
 addRemoveAuraButton.Size = UDim2.new(0.9, 0, 0, 40)
 addRemoveAuraButton.Position = UDim2.new(0.05, 0, 0, 110)
-addRemoveAuraButton.Text = "Add Aura"
+addRemoveAuraButton.Text = "Add/Remove Aura"
 addRemoveAuraButton.BackgroundColor3 = Color3.new(0.3, 0.5, 0.8)
 addRemoveAuraButton.Parent = auraTabFrame
 
@@ -106,12 +106,12 @@ addRemoveAuraButton.MouseButton1Click:Connect(function()
         if not found then
             table.insert(aurasToDelete, auraName)
         end
-        -- Update Aura List (just for demonstration, as the list of auras is static in the original code)
+        -- Update Aura List
         print("Auras to delete: " .. table.concat(aurasToDelete, ", "))
     end
 end)
 
--- Potion Collector Tab (Not Changed in this part)
+-- Potion Collector Tab
 local potionTabFrame = Instance.new("Frame")
 potionTabFrame.Size = UDim2.new(1, 0, 1, -40)
 potionTabFrame.Position = UDim2.new(0, 0, 0, 40)
