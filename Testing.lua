@@ -1,6 +1,22 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+local function safeLoadstring(url)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if success then
+        return result
+    else
+        warn("Failed to load: " .. url)
+        return nil
+    end
+end
+
+local Fluent = safeLoadstring("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua")
+local SaveManager = safeLoadstring("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua")
+local InterfaceManager = safeLoadstring("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua")
+
+if not (Fluent and SaveManager and InterfaceManager) then
+    error("Failed to load one or more required libraries.")
+end
 
 local Window = Fluent:CreateWindow({
     Title = "Aura Manager",
@@ -53,13 +69,6 @@ Tabs.Main:AddButton({
     Callback = toggleScript
 })
 
-Tabs.Main:AddParagraph({
-    Title = "Script Status",
-    Content = function()
-        return isScriptActive and "The script is running." or "The script is not running."
-    end
-})
-
 Tabs.Main:AddInput("AmountToDelete", {
     Title = "Amount to Delete",
     Default = amountToDelete,
@@ -84,10 +93,11 @@ task.spawn(function()
     while true do
         task.wait(0.01)
         if isScriptActive then
-            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
+            local r = game:GetService("ReplicatedStorage")
+            r.Remotes.ZachRLL:InvokeServer()
             processAuras()
             for _, d in ipairs(aurasToDelete) do
-                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+                r.Remotes.DeleteAura:FireServer(d, amountToDelete)
             end
         end
     end
