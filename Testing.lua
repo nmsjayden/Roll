@@ -3,8 +3,8 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Fluent " .. Fluent.Version,
-    SubTitle = "by dawid",
+    Title = "Aura Manager",
+    SubTitle = "by nmsjayden",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
@@ -13,74 +13,92 @@ local Window = Fluent:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    AuraManagement = Window:AddTab({ Title = "Aura Management", Icon = "layers" }),
+    Main = Window:AddTab({ Title = "Aura Management" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
 local Options = Fluent.Options
 
--- Aura List
-local auras = {"Fire", "Water", "Earth", "Air"}
-local function updateAuraList()
-    local content = table.concat(auras, "\n")
-    Tabs.AuraManagement:AddParagraph({
-        Title = "Aura List",
-        Content = content
-    })
+-- Variables
+local isScriptActive = false
+local amountToDelete = "6"
+local aurasToDelete = {
+    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
+    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame",
+    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism",
+    "Nebula", "Numerical", "/|Errxr|\", "Storm", "Storm: True Form", "GLADIATOR",
+    "Prism: True Form", "Aurora", "Iridescent: True Form", "Grim Reaper: True Form",
+    "Iridescent: True Form", "Syberis"
+}
+
+local function processAuras()
+    local r = game:GetService("ReplicatedStorage")
+    local f = r:FindFirstChild("Auras")
+    if f then
+        for _, b in pairs(f:GetChildren()) do
+            r.Remotes.AcceptAura:FireServer(b.Name, true)
+        end
+    end
 end
 
--- Add/Remove Aura Button
-Tabs.AuraManagement:AddButton({
-    Title = "Add/Remove Aura",
-    Description = "Toggle the presence of auras.",
-    Callback = function()
-        if table.find(auras, "Light") then
-            table.remove(auras, table.find(auras, "Light"))
-        else
-            table.insert(auras, "Light")
-        end
-        updateAuraList()
-    end
-})
+-- Toggle Script Behavior
+local function toggleScript()
+    isScriptActive = not isScriptActive
+end
 
--- Quickroll Button
-Tabs.Main:AddButton({
-    Title = "Quickroll",
-    Description = "Perform a quickroll action.",
-    Callback = function()
-        print("Quickroll activated!")
-    end
-})
-
--- Aura Script Toggle
-local auraScriptActive = false
-Tabs.AuraManagement:AddToggle("AuraScriptToggle", {
-    Title = "Aura Script On/Off",
+-- Main Functionality
+Tabs.Main:AddToggle("ScriptToggle", {
+    Title = "Enable Aura Script",
     Default = false,
-    Callback = function(state)
-        auraScriptActive = state
-        print("Aura Script is now", auraScriptActive and "Active" or "Inactive")
+    Callback = function(Value)
+        isScriptActive = Value
     end
 })
 
--- SaveManager and InterfaceManager Integration
-SaveManager:SetLibrary(Fluent)
+Tabs.Main:AddButton({
+    Title = "Process Auras",
+    Callback = function()
+        processAuras()
+    end
+})
+
+Tabs.Main:AddButton({
+    Title = "Delete Auras",
+    Callback = function()
+        for _, d in ipairs(aurasToDelete) do
+            game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+        end
+    end
+})
+
+-- Background Task
+spawn(function()
+    while task.wait(0.01) do
+        if isScriptActive then
+            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
+            processAuras()
+            for _, d in ipairs(aurasToDelete) do
+                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+            end
+        end
+    end
+end)
+
+-- Save Manager and Settings
 InterfaceManager:SetLibrary(Fluent)
+SaveManager:SetLibrary(Fluent)
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
-InterfaceManager:SetFolder("FluentScriptHub")
-SaveManager:SetFolder("FluentScriptHub/specific-game")
+InterfaceManager:SetFolder("AuraManagerHub")
+SaveManager:SetFolder("AuraManagerHub/config")
+
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
-
 Window:SelectTab(1)
 
-Fluent:Notify({
-    Title = "Fluent",
-    Content = "The script has been loaded.",
-    Duration = 8
-})
-
--- Load Autoload Config
 SaveManager:LoadAutoloadConfig()
+Fluent:Notify({
+    Title = "Aura Manager",
+    Content = "Script loaded successfully.",
+    Duration = 5
+})
