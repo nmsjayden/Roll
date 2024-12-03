@@ -1,9 +1,8 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Fluent = safeLoad("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua")
 if not Fluent then return end
 
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
-
+local SaveManager = safeLoad("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua")
+local InterfaceManager = safeLoad("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua")
 if not SaveManager or not InterfaceManager then
     warn("Failed to load SaveManager or InterfaceManager")
     return
@@ -114,26 +113,24 @@ Tabs.Settings:AddButton({
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
+-- Ignore keys that are used by ThemeManager (we don't want configs to save themes)
 SaveManager:IgnoreThemeSettings()
+
+-- Optional: Set which indexes to ignore
 SaveManager:SetIgnoreIndexes({})
 
+-- Specify folders for saving configurations
 InterfaceManager:SetFolder("AuraManagerGUI")
 SaveManager:SetFolder("AuraManagerGUI/config")
 
+-- Build sections for the Settings tab
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
--- Autoload configuration handling
+-- Auto-load configuration (if a config is marked to auto-load)
 pcall(function()
     SaveManager:LoadAutoloadConfig()
 end)
-
--- Save configuration example: storing aurasToDelete
-SaveManager:AddConfig("aurasConfig", function()
-    return { aurasToDelete = aurasToDelete }
-end)
-
-SaveManager:LoadAutoloadConfig() -- This will load a configuration if available.
 
 -- Background Script Execution
 spawn(function()
@@ -155,5 +152,11 @@ spawn(function()
     end
 end)
 
+-- Finalize GUI setup
 Window:SelectTab(1)
-Fluent:Notify({ Title = "Aura Management GUI", Content = "The script has been loaded.", Duration = 8 })
+
+Fluent:Notify({
+    Title = "Aura Management GUI",
+    Content = "The script has been loaded.",
+    Duration = 8
+})
