@@ -6,5 +6,5 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/h
 💎Gem Teleport Script💎:
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/TJule.lua"))();
 
-Testing Script:
+🦃Crafting RNG Teleport Script🦃:
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Crafting%20RNG%20teleport.lua"))();
