@@ -112,6 +112,15 @@ Tabs.AuraManagement:AddTextbox("AmountToDelete", {
     end
 })
 
+-- Settings Tab Buttons
+Tabs.Settings:AddButton({
+    Title = "Unload Script",
+    Callback = function()
+        Fluent:Notify({ Title = "Script", Content = "Unloading the script.", Duration = 5 })
+        -- Add unloading logic here if applicable
+    end
+})
+
 -- Background Script Execution
 spawn(function()
     while true do
