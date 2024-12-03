@@ -9,7 +9,6 @@ if not SaveManager or not InterfaceManager then
     return
 end
 
--- Create the main window and tabs
 local Window = Fluent:CreateWindow({
     Title = "Aura Management GUI",
     SubTitle = "by dawid",
@@ -28,7 +27,90 @@ local Tabs = {
 
 local Options = Fluent.Options
 
--- Set up SaveManager and InterfaceManager
+-- Quick Roll Toggle
+local isScriptActive = false
+local function toggleQuickRoll()
+    isScriptActive = not isScriptActive
+    Fluent:Notify({
+        Title = "Quick Roll",
+        Content = "Quick Roll is now " .. (isScriptActive and "ON" or "OFF"),
+        Duration = 5
+    })
+end
+
+Tabs.Main:AddToggle({
+    Title = "Quick Roll",
+    Default = isScriptActive,
+    Callback = toggleQuickRoll
+})
+
+-- Aura Management
+local aurasToDelete = {
+    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"
+}
+
+Tabs.AuraManagement:AddTextbox("AuraInput", {
+    Title = "Add/Remove Aura",
+    Placeholder = "Enter aura name",
+    Default = "",
+    Callback = function(auraName)
+        if auraName ~= "" then
+            local found = false
+            for i, aura in ipairs(aurasToDelete) do
+                if aura == auraName then
+                    table.remove(aurasToDelete, i)
+                    Fluent:Notify({ Title = "Aura Removed", Content = auraName, Duration = 3 })
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                table.insert(aurasToDelete, auraName)
+                Fluent:Notify({ Title = "Aura Added", Content = auraName, Duration = 3 })
+            end
+        end
+    end
+})
+
+Tabs.AuraManagement:AddParagraph({
+    Title = "Current Auras",
+    Content = table.concat(aurasToDelete, ", ")
+})
+
+Tabs.AuraManagement:AddButton({
+    Title = "Process Auras",
+    Callback = function()
+        local r = game:GetService("ReplicatedStorage")
+        local f = r:FindFirstChild("Auras")
+        if f then
+            for _, b in pairs(f:GetChildren()) do
+                r.Remotes.AcceptAura:FireServer(b.Name, true)
+            end
+        end
+        Fluent:Notify({ Title = "Process Auras", Content = "Auras have been processed.", Duration = 5 })
+    end
+})
+
+Tabs.AuraManagement:AddTextbox("AmountToDelete", {
+    Title = "Amount to Delete",
+    Placeholder = "Enter amount",
+    Default = "6",
+    Callback = function(amount)
+        amountToDelete = tonumber(amount) or 6
+        Fluent:Notify({ Title = "Amount Updated", Content = "Delete amount set to " .. amountToDelete, Duration = 3 })
+    end
+})
+
+-- Settings Tab Buttons
+Tabs.Settings:AddButton({
+    Title = "Unload Script",
+    Callback = function()
+        Fluent:Notify({ Title = "Script", Content = "Unloading the script.", Duration = 5 })
+        -- Add unloading logic here if applicable
+    end
+})
+
+-- SaveManager and InterfaceManager Setup
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
@@ -38,72 +120,22 @@ SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("AuraManagerGUI")
 SaveManager:SetFolder("AuraManagerGUI/config")
 
--- Load saved auras and settings
-local savedAuras = SaveManager:Load("aurasToDelete") or {"Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"}
-local amountToDelete = SaveManager:Load("amountToDelete") or 6
-
--- Notify user if auras are successfully loaded
-Fluent:Notify({
-    Title = "Aura Management",
-    Content = "Auras and settings have been loaded.",
-    Duration = 5
-})
-
--- Aura Management Setup
-Tabs.AuraManagement:AddTextbox("AuraInput", {
-    Title = "Add/Remove Aura",
-    Placeholder = "Enter aura name",
-    Default = "",
-    Callback = function(auraName)
-        if auraName ~= "" then
-            local found = false
-            for i, aura in ipairs(savedAuras) do
-                if aura == auraName then
-                    table.remove(savedAuras, i)
-                    Fluent:Notify({ Title = "Aura Removed", Content = auraName, Duration = 3 })
-                    found = true
-                    break
-                end
-            end
-            if not found then
-                table.insert(savedAuras, auraName)
-                Fluent:Notify({ Title = "Aura Added", Content = auraName, Duration = 3 })
-            end
-            SaveManager:Save("aurasToDelete", savedAuras)  -- Save changes
-        end
-    end
-})
-
-Tabs.AuraManagement:AddParagraph({
-    Title = "Current Auras",
-    Content = table.concat(savedAuras, ", ")
-})
-
-Tabs.AuraManagement:AddTextbox("AmountToDelete", {
-    Title = "Amount to Delete",
-    Placeholder = "Enter amount",
-    Default = tostring(amountToDelete),
-    Callback = function(amount)
-        amountToDelete = tonumber(amount) or 6
-        Fluent:Notify({ Title = "Amount Updated", Content = "Delete amount set to " .. amountToDelete, Duration = 3 })
-        SaveManager:Save("amountToDelete", amountToDelete)  -- Save amount setting
-    end
-})
-
--- Settings Tab: Unload Script Button
-Tabs.Settings:AddButton({
-    Title = "Unload Script",
-    Callback = function()
-        Fluent:Notify({ Title = "Script", Content = "Unloading the script.", Duration = 5 })
-        -- Logic for unloading the script
-    end
-})
-
--- Save configurations when the GUI is unloaded or saved manually
-SaveManager:BuildConfigSection(Tabs.Settings)
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
--- Background Script Execution for Active Aura Management
+-- Autoload configuration handling
+pcall(function()
+    SaveManager:LoadAutoloadConfig()
+end)
+
+-- Save configuration example: storing aurasToDelete
+SaveManager:AddConfig("aurasConfig", function()
+    return { aurasToDelete = aurasToDelete }
+end)
+
+SaveManager:LoadAutoloadConfig() -- This will load a configuration if available.
+
+-- Background Script Execution
 spawn(function()
     while true do
         task.wait(0.01)
@@ -116,18 +148,12 @@ spawn(function()
                     r.Remotes.AcceptAura:FireServer(b.Name, true)
                 end
             end
-            for _, d in ipairs(savedAuras) do
+            for _, d in ipairs(aurasToDelete) do
                 game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, tostring(amountToDelete))
             end
         end
     end
 end)
 
--- Load saved configuration on startup
-pcall(function()
-    SaveManager:LoadAutoloadConfig()
-end)
-
--- Initialize the first tab and notify user
 Window:SelectTab(1)
 Fluent:Notify({ Title = "Aura Management GUI", Content = "The script has been loaded.", Duration = 8 })
