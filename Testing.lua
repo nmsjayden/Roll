@@ -55,26 +55,19 @@ Tabs.Main:AddSwitch({
     Callback = toggleQuickRoll
 })
 
-Tabs.Main:AddButton({
-    Title = "Process Auras",
-    Callback = function()
-        Fluent:Notify({
-            Title = "Processing Auras",
-            Content = "Processing initiated.",
-            Duration = 3
-        })
-    end
-})
-
--- Aura Management Tab
+-- Aura Management
 local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"
 }
 
-local auraList = Tabs.AuraManagement:AddParagraph({
-    Title = "Current Auras",
-    Content = table.concat(aurasToDelete, ", ")
-})
+local function refreshAurasParagraph()
+    Tabs.AuraManagement:RemoveElement("CurrentAurasParagraph")
+    Tabs.AuraManagement:AddParagraph({
+        Title = "Current Auras",
+        Content = table.concat(aurasToDelete, ", "),
+        Key = "CurrentAurasParagraph"
+    })
+end
 
 Tabs.AuraManagement:AddTextbox("AuraInput", {
     Title = "Add/Remove Aura",
@@ -95,19 +88,12 @@ Tabs.AuraManagement:AddTextbox("AuraInput", {
                 table.insert(aurasToDelete, auraName)
                 Fluent:Notify({ Title = "Aura Added", Content = auraName, Duration = 3 })
             end
-            auraList:SetContent(table.concat(aurasToDelete, ", "))
+            refreshAurasParagraph()
         end
     end
 })
 
-Tabs.AuraManagement:AddButton({
-    Title = "Clear All Auras",
-    Callback = function()
-        aurasToDelete = {}
-        auraList:SetContent("No auras available.")
-        Fluent:Notify({ Title = "Auras Cleared", Content = "All auras have been removed.", Duration = 3 })
-    end
-})
+refreshAurasParagraph()
 
 -- Script Functionality
 local function processAuras()
