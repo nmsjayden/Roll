@@ -13,7 +13,7 @@ local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
     "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
     "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
-    "Nebula", "Numerical", "/|Errxr|\", "Storm", "Storm: True Form", "GLADIATOR", "Prism: True Form", "Aurora", "Iridescent: True Form", "Grim Reaper: True Form", "Iridescent: True Form", "Syberis" }
+    "Nebula"}
 local isScriptActive = false
 local amountToDelete = "6"
 
