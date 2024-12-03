@@ -21,7 +21,7 @@ if not SaveManager or not InterfaceManager then
 end
 
 local Window = Fluent:CreateWindow({
-    Title = "Fluent " .. Fluent.Version,
+    Title = "Aura Management GUI",
     SubTitle = "by dawid",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -37,60 +37,92 @@ local Tabs = {
 
 local Options = Fluent.Options
 
--- Add a safeguard for transparency handling in TColorpicker
-local function safeSetTransparency(colorpicker, transparency)
-    local clampedTransparency = math.clamp(transparency or 0, 0, 1)
-    colorpicker.Transparency = clampedTransparency
-end
-
--- Main content setup (unchanged logic)
-do
+-- Quick Roll Toggle
+local isScriptActive = false
+local function toggleQuickRoll()
+    isScriptActive = not isScriptActive
     Fluent:Notify({
-        Title = "Notification",
-        Content = "This is a notification",
-        SubContent = "SubContent",
+        Title = "Quick Roll",
+        Content = "Quick Roll is now " .. (isScriptActive and "ON" or "OFF"),
         Duration = 5
     })
-
-    Tabs.Main:AddParagraph({ Title = "Paragraph", Content = "This is a paragraph.\nSecond line!" })
-
-    Tabs.Main:AddButton({
-        Title = "Button",
-        Description = "Very important button",
-        Callback = function()
-            Window:Dialog({
-                Title = "Title",
-                Content = "This is a dialog",
-                Buttons = {
-                    { Title = "Confirm", Callback = function() print("Confirmed the dialog.") end },
-                    { Title = "Cancel", Callback = function() print("Cancelled the dialog.") end }
-                }
-            })
-        end
-    })
-
-    local TColorpicker = Tabs.Main:AddColorpicker("TransparencyColorpicker", {
-        Title = "Colorpicker",
-        Transparency = 0,
-        Default = Color3.fromRGB(96, 205, 255)
-    })
-
-    safeSetTransparency(TColorpicker, 0.5) -- Example to set transparency safely
-    TColorpicker:OnChanged(function()
-        safeSetTransparency(TColorpicker, TColorpicker.Transparency)
-        print("TColorpicker changed:", TColorpicker.Value, "Transparency:", TColorpicker.Transparency)
-    end)
 end
 
--- SaveManager and InterfaceManager setup
+Tabs.Main:AddSwitch({
+    Title = "Quick Roll",
+    Default = isScriptActive,
+    Callback = toggleQuickRoll
+})
+
+-- Aura Management
+local aurasToDelete = {
+    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"
+}
+
+local auraTextbox = Tabs.Main:AddTextbox("AuraInput", {
+    Title = "Add/Remove Aura",
+    Placeholder = "Enter aura name",
+    Default = "",
+    Callback = function(auraName)
+        if auraName ~= "" then
+            local found = false
+            for i, aura in ipairs(aurasToDelete) do
+                if aura == auraName then
+                    table.remove(aurasToDelete, i)
+                    Fluent:Notify({ Title = "Aura Removed", Content = auraName, Duration = 3 })
+                    found = true
+                    break
+                end
+            end
+            if not found then
+                table.insert(aurasToDelete, auraName)
+                Fluent:Notify({ Title = "Aura Added", Content = auraName, Duration = 3 })
+            end
+        end
+    end
+})
+
+Tabs.Main:AddParagraph({
+    Title = "Current Auras",
+    Content = table.concat(aurasToDelete, ", ")
+})
+
+-- Script Functionality
+local function processAuras()
+    local r = game:GetService("ReplicatedStorage")
+    local f = r:FindFirstChild("Auras")
+    if f then
+        for _, b in pairs(f:GetChildren()) do
+            r.Remotes.AcceptAura:FireServer(b.Name, true)
+        end
+    end
+end
+
+local amountToDelete = "6"
+
+-- Background Script Execution
+spawn(function()
+    while true do
+        task.wait(0.01)
+        if isScriptActive then
+            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
+            processAuras()
+            for _, d in ipairs(aurasToDelete) do
+                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+            end
+        end
+    end
+end)
+
+-- SaveManager and InterfaceManager Setup
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
 
-InterfaceManager:SetFolder("FluentScriptHub")
-SaveManager:SetFolder("FluentScriptHub/specific-game")
+InterfaceManager:SetFolder("AuraManagerGUI")
+SaveManager:SetFolder("AuraManagerGUI/config")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -101,4 +133,4 @@ pcall(function()
 end)
 
 Window:SelectTab(1)
-Fluent:Notify({ Title = "Fluent", Content = "The script has been loaded.", Duration = 8 })
+Fluent:Notify({ Title = "Aura Management GUI", Content = "The script has been loaded.", Duration = 8 })
