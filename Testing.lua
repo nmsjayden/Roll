@@ -121,6 +121,19 @@ Tabs.Settings:AddButton({
     end
 })
 
+-- SaveManager and InterfaceManager Setup
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("AuraManagerGUI")
+SaveManager:SetFolder("AuraManagerGUI/config")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
 -- Background Script Execution
 spawn(function()
     while true do
@@ -140,19 +153,6 @@ spawn(function()
         end
     end
 end)
-
--- SaveManager and InterfaceManager Setup
-SaveManager:SetLibrary(Fluent)
-InterfaceManager:SetLibrary(Fluent)
-
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({})
-
-InterfaceManager:SetFolder("AuraManagerGUI")
-SaveManager:SetFolder("AuraManagerGUI/config")
-
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
 
 -- Autoload configuration handling
 pcall(function()
