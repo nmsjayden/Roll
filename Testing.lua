@@ -1,26 +1,10 @@
-local function safeLoadstring(url)
-    local success, result = pcall(function()
-        return loadstring(game:HttpGet(url))()
-    end)
-    if success then
-        return result
-    else
-        warn("Failed to load: " .. url)
-        return nil
-    end
-end
-
-local Fluent = safeLoadstring("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua")
-local SaveManager = safeLoadstring("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua")
-local InterfaceManager = safeLoadstring("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua")
-
-if not (Fluent and SaveManager and InterfaceManager) then
-    error("Failed to load one or more required libraries.")
-end
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Aura Manager",
-    SubTitle = "by dawid",
+    Title = "Custom GUI",
+    SubTitle = "QuickRoll Integration",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
@@ -33,91 +17,86 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
 }
 
-local isScriptActive = false
-local aurasToDelete = {
-    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
-    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
-    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
-    "Nebula", "Numerical", "/|Errxr|\", "Storm", "Storm: True Form", "GLADIATOR", 
-    "Prism: True Form", "Aurora", "Iridescent: True Form", "Grim Reaper: True Form", 
-    "Iridescent: True Form", "Syberis"
-}
-local amountToDelete = "6"
+local Options = Fluent.Options
 
-local function processAuras()
-    local r = game:GetService("ReplicatedStorage")
-    local f = r:FindFirstChild("Auras")
-    if f then
-        for _, b in pairs(f:GetChildren()) do
-            r.Remotes.AcceptAura:FireServer(b.Name, true)
-        end
+-- QuickRoll toggle functionality
+local QuickRollEnabled = false
+local function toggleQuickRoll()
+    QuickRollEnabled = not QuickRollEnabled
+    if QuickRollEnabled then
+        print("QuickRoll Enabled")
+        -- Add your QuickRoll logic here, e.g., rolling logic
+    else
+        print("QuickRoll Disabled")
     end
 end
 
-local function toggleScript()
-    isScriptActive = not isScriptActive
-    Fluent:Notify({
-        Title = "Script Toggle",
-        Content = isScriptActive and "Script Activated" or "Script Deactivated",
-        Duration = 5
-    })
-end
-
-Tabs.Main:AddButton({
-    Title = "Toggle Aura Script",
-    Description = "Start or stop the aura script",
-    Callback = toggleScript
+Tabs.Main:AddToggle("QuickRollToggle", {
+    Title = "QuickRoll",
+    Default = false,
+    Callback = function(Value)
+        toggleQuickRoll()
+    end
 })
 
-Tabs.Main:AddInput("AmountToDelete", {
-    Title = "Amount to Delete",
-    Default = amountToDelete,
-    Placeholder = "Enter a number",
+-- Example button to trigger a QuickRoll action
+Tabs.Main:AddButton({
+    Title = "Roll Now",
+    Description = "Perform a QuickRoll.",
+    Callback = function()
+        if QuickRollEnabled then
+            print("Rolling...")
+            -- Execute rolling logic here
+        else
+            print("QuickRoll is disabled.")
+        end
+    end
+})
+
+-- Add other GUI features from your original script
+Tabs.Main:AddSlider("QuickRollDelay", {
+    Title = "QuickRoll Delay",
+    Description = "Set the delay between rolls.",
+    Default = 2,
+    Min = 0.5,
+    Max = 5,
+    Rounding = 1,
+    Callback = function(Value)
+        print("QuickRoll Delay set to:", Value)
+        -- Update delay logic here
+    end
+})
+
+-- Example input for roll customization
+Tabs.Main:AddInput("RollMultiplier", {
+    Title = "Multiplier",
+    Placeholder = "Enter multiplier...",
     Numeric = true,
     Callback = function(Value)
-        amountToDelete = Value
+        print("Multiplier set to:", Value)
+        -- Use the multiplier value here
     end
 })
 
-Tabs.Main:AddDropdown("AuraList", {
-    Title = "Auras to Delete",
-    Values = aurasToDelete,
-    Multi = true,
-    Default = {},
-    Callback = function(SelectedAuras)
-        aurasToDelete = SelectedAuras
-    end
-})
-
-task.spawn(function()
-    while true do
-        task.wait(0.01)
-        if isScriptActive then
-            local r = game:GetService("ReplicatedStorage")
-            r.Remotes.ZachRLL:InvokeServer()
-            processAuras()
-            for _, d in ipairs(aurasToDelete) do
-                r.Remotes.DeleteAura:FireServer(d, amountToDelete)
-            end
-        end
-    end
-end)
-
+-- Addons
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
+
 SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
-InterfaceManager:SetFolder("AuraManager")
-SaveManager:SetFolder("AuraManager/Configs")
+InterfaceManager:SetFolder("CustomScriptHub")
+SaveManager:SetFolder("CustomScriptHub/specific-game")
+
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
 Window:SelectTab(1)
 
 Fluent:Notify({
-    Title = "Aura Manager",
+    Title = "Custom GUI",
     Content = "The script has been loaded.",
     Duration = 8
 })
 
+-- Automatically load config if available
 SaveManager:LoadAutoloadConfig()
