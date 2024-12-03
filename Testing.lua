@@ -1,11 +1,24 @@
-local UILib = loadstring(game:HttpGet('https://raw.githubusercontent.com/StepBroFurious/Script/main/HydraHubUi.lua'))()
-local Window = UILib.new("Grand Piece Online", game.Players.LocalPlayer.UserId, "Buyer")
+-- Safeload: Check if the script is running inside a Roblox game
+if not game or not game.Players then
+    print("This script must be run inside a Roblox game.")
+    return
+end
 
--- Creating the Main Category and SubButton
+-- Safely load the UILib
+local success, UILib = pcall(function()
+    return loadstring(game:HttpGet('https://raw.githubusercontent.com/StepBroFurious/Script/main/HydraHubUi.lua'))()
+end)
+
+-- Check if UILib was loaded successfully
+if not success then
+    print("Failed to load UILib.")
+    return
+end
+
+-- Proceed with the script if UILib loaded successfully
+local Window = UILib.new("Grand Piece Online", game.Players.LocalPlayer.UserId, "Buyer")
 local Category1 = Window:Category("Main", "http://www.roblox.com/asset/?id=8395621517")
 local SubButton1 = Category1:Button("Combat", "http://www.roblox.com/asset/?id=8395747586")
-
--- Creating the Section inside the Combat Button
 local Section1 = SubButton1:Section("Section", "Left")
 
 -- Button for Kill All
