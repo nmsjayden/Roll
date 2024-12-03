@@ -1,8 +1,20 @@
+local function safeLoad(url)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    if not success then
+        warn("Failed to load:", url)
+        return nil
+    end
+    return result
+end
+
 local Fluent = safeLoad("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua")
 if not Fluent then return end
 
 local SaveManager = safeLoad("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua")
 local InterfaceManager = safeLoad("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua")
+
 if not SaveManager or not InterfaceManager then
     warn("Failed to load SaveManager or InterfaceManager")
     return
@@ -25,6 +37,19 @@ local Tabs = {
 }
 
 local Options = Fluent.Options
+
+-- SaveManager and InterfaceManager Setup
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("AuraManagerGUI")
+SaveManager:SetFolder("AuraManagerGUI/config")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
 -- Quick Roll Toggle
 local isScriptActive = false
@@ -109,29 +134,6 @@ Tabs.Settings:AddButton({
     end
 })
 
--- SaveManager and InterfaceManager Setup
-SaveManager:SetLibrary(Fluent)
-InterfaceManager:SetLibrary(Fluent)
-
--- Ignore keys that are used by ThemeManager (we don't want configs to save themes)
-SaveManager:IgnoreThemeSettings()
-
--- Optional: Set which indexes to ignore
-SaveManager:SetIgnoreIndexes({})
-
--- Specify folders for saving configurations
-InterfaceManager:SetFolder("AuraManagerGUI")
-SaveManager:SetFolder("AuraManagerGUI/config")
-
--- Build sections for the Settings tab
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
-
--- Auto-load configuration (if a config is marked to auto-load)
-pcall(function()
-    SaveManager:LoadAutoloadConfig()
-end)
-
 -- Background Script Execution
 spawn(function()
     while true do
@@ -152,11 +154,10 @@ spawn(function()
     end
 end)
 
--- Finalize GUI setup
-Window:SelectTab(1)
+-- Autoload configuration handling
+pcall(function()
+    SaveManager:LoadAutoloadConfig()
+end)
 
-Fluent:Notify({
-    Title = "Aura Management GUI",
-    Content = "The script has been loaded.",
-    Duration = 8
-})
+Window:SelectTab(1)
+Fluent:Notify({ Title = "Aura Management GUI", Content = "The script has been loaded.", Duration = 8 })
