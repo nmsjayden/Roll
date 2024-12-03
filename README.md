@@ -3,7 +3,7 @@ For the Gem script id recommend having noclip on. I will later combine these two
 ✔️Main Script✔️:     
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Jule.lua"))();
 
-💎Gem Teleport Script💎:
+💎Gem Teleport Script💎:     
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/TJule.lua"))();
 
 🦃Crafting RNG Teleport Script🦃:
