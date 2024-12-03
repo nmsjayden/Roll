@@ -60,15 +60,6 @@ local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"
 }
 
-local function refreshAurasParagraph()
-    Tabs.AuraManagement:RemoveElement("CurrentAurasParagraph")
-    Tabs.AuraManagement:AddParagraph({
-        Title = "Current Auras",
-        Content = table.concat(aurasToDelete, ", "),
-        Key = "CurrentAurasParagraph"
-    })
-end
-
 Tabs.AuraManagement:AddTextbox("AuraInput", {
     Title = "Add/Remove Aura",
     Placeholder = "Enter aura name",
@@ -88,25 +79,38 @@ Tabs.AuraManagement:AddTextbox("AuraInput", {
                 table.insert(aurasToDelete, auraName)
                 Fluent:Notify({ Title = "Aura Added", Content = auraName, Duration = 3 })
             end
-            refreshAurasParagraph()
         end
     end
 })
 
-refreshAurasParagraph()
+Tabs.AuraManagement:AddParagraph({
+    Title = "Current Auras",
+    Content = table.concat(aurasToDelete, ", ")
+})
 
--- Script Functionality
-local function processAuras()
-    local r = game:GetService("ReplicatedStorage")
-    local f = r:FindFirstChild("Auras")
-    if f then
-        for _, b in pairs(f:GetChildren()) do
-            r.Remotes.AcceptAura:FireServer(b.Name, true)
+Tabs.AuraManagement:AddButton({
+    Title = "Process Auras",
+    Callback = function()
+        local r = game:GetService("ReplicatedStorage")
+        local f = r:FindFirstChild("Auras")
+        if f then
+            for _, b in pairs(f:GetChildren()) do
+                r.Remotes.AcceptAura:FireServer(b.Name, true)
+            end
         end
+        Fluent:Notify({ Title = "Process Auras", Content = "Auras have been processed.", Duration = 5 })
     end
-end
+})
 
-local amountToDelete = "6"
+Tabs.AuraManagement:AddTextbox("AmountToDelete", {
+    Title = "Amount to Delete",
+    Placeholder = "Enter amount",
+    Default = "6",
+    Callback = function(amount)
+        amountToDelete = tonumber(amount) or 6
+        Fluent:Notify({ Title = "Amount Updated", Content = "Delete amount set to " .. amountToDelete, Duration = 3 })
+    end
+})
 
 -- Background Script Execution
 spawn(function()
@@ -114,9 +118,15 @@ spawn(function()
         task.wait(0.01)
         if isScriptActive then
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
-            processAuras()
+            local r = game:GetService("ReplicatedStorage")
+            local f = r:FindFirstChild("Auras")
+            if f then
+                for _, b in pairs(f:GetChildren()) do
+                    r.Remotes.AcceptAura:FireServer(b.Name, true)
+                end
+            end
             for _, d in ipairs(aurasToDelete) do
-                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, tostring(amountToDelete))
             end
         end
     end
