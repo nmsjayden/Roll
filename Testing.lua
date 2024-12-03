@@ -32,7 +32,8 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+    AuraManagement = Window:AddTab({ Title = "Aura Management", Icon = "settings" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "cog" })
 }
 
 local Options = Fluent.Options
@@ -59,7 +60,7 @@ local aurasToDelete = {
     "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage"
 }
 
-local auraTextbox = Tabs.Main:AddTextbox("AuraInput", {
+Tabs.AuraManagement:AddTextbox("AuraInput", {
     Title = "Add/Remove Aura",
     Placeholder = "Enter aura name",
     Default = "",
@@ -82,7 +83,7 @@ local auraTextbox = Tabs.Main:AddTextbox("AuraInput", {
     end
 })
 
-Tabs.Main:AddParagraph({
+Tabs.AuraManagement:AddParagraph({
     Title = "Current Auras",
     Content = table.concat(aurasToDelete, ", ")
 })
