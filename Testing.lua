@@ -1,100 +1,14 @@
-local Library = loadstring(game:HttpGetAsync("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau"))()
-local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau"))()
-local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
+-- A reference to the live-updating paragraph for the aura list
+local auraListParagraph
 
-local Window = Library:CreateWindow{
-    Title = `Fluent {Library.Version}`,
-    SubTitle = "by Actual Master Oogway",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(830, 525),
-    Resize = true,
-    MinSize = Vector2.new(470, 380),
-    Acrylic = true,
-    Theme = "Dark",
-}
-
-local Tabs = {
-    Main = Window:CreateTab{
-        Title = "Main",
-        Icon = "circle-user-round"
-    },
-    Settings = Window:CreateTab{
-        Title = "Settings",
-        Icon = "settings"
-    }
-}
-
-local Options = Library.Options
-
-local aurasToDelete = {
-    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
-    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
-    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
-    "Nebula", "Numerical", "/|Errxr|\\", "Storm", "Storm: True Form", "GLADIATOR", 
-    "Prism: True Form", "Aurora", "Iridescent: True Form", "Grim Reaper: True Form", 
-    "Iridescent: True Form", "Syberis"
-}
-local isScriptActive = false
-local amountToDelete = "6"
-
--- Create a dynamic paragraph to display the aura list
-local auraListParagraph = Tabs.Main:CreateParagraph("AuraListDisplay", {
-    Title = "Aura List",
-    Content = table.concat(aurasToDelete, "\n"),
-    TitleAlignment = "Middle",
-    ContentAlignment = "Left",
-})
-
-local function updateAuraList()
-    -- Update the paragraph content to reflect the current aurasToDelete list
-    auraListParagraph:SetText{
-        Title = "Aura List",
-        Content = table.concat(aurasToDelete, "\n"),
-    }
-end
-
-local function processAuras()
-    local r = game:GetService("ReplicatedStorage")
-    local f = r:FindFirstChild("Auras")
-    if f then
-        for _, b in pairs(f:GetChildren()) do
-            r.Remotes.AcceptAura:FireServer(b.Name, true)
-        end
+-- Function to update the displayed aura list
+local function updateAuraListDisplay()
+    local content = table.concat(aurasToDelete, ", ")
+    if content == "" then
+        content = "No auras in the list."
     end
+    auraListParagraph:SetText(content)
 end
-
-local function toggleScript(state)
-    isScriptActive = state
-end
-
-task.spawn(function()
-    while true do
-        task.wait(0.01)
-        if isScriptActive then
-            -- Only run the script if the toggle is on
-            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
-            processAuras()
-            for _, d in ipairs(aurasToDelete) do
-                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
-            end
-        end
-    end
-end)
-
--- Create Subheading "Quick Roll"
-Tabs.Main:CreateParagraph("QuickRollSubheading", {
-    Title = "Quick Roll",
-    Content = "",
-    TitleAlignment = "Middle",
-    ContentAlignment = "Middle"
-})
-
--- Create the Quick Roll Toggle in the Main tab
-Tabs.Main:CreateToggle("Quick Roll Toggle", {
-    Title = "Activate Quick Roll", 
-    Default = false, 
-    Callback = toggleScript
-})
 
 -- Create Subheading "Aura List Config"
 Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
@@ -111,6 +25,14 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Placeholder = "Enter Aura Name",
     Numeric = false,
     Finished = true,
+})
+
+-- Create the live-updating aura list paragraph
+auraListParagraph = Tabs.Main:CreateParagraph("AuraListDisplay", {
+    Title = "Current Auras to Delete",
+    Content = "No auras in the list.",
+    TitleAlignment = "Middle",
+    ContentAlignment = "Left"
 })
 
 -- Function to add or remove an aura from the aurasToDelete list
@@ -142,8 +64,9 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        -- Update the aura list display
-        updateAuraList()
+
+        -- Update the displayed aura list
+        updateAuraListDisplay()
     else
         Library:Notify{
             Title = "Invalid Input",
@@ -160,24 +83,5 @@ Tabs.Main:CreateButton{
     Callback = addOrRemoveAura
 }
 
--- Interface and save managers
-InterfaceManager:SetLibrary(Library)
-SaveManager:SetLibrary(Library)
-
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes{}
-InterfaceManager:SetFolder("FluentScriptHub")
-SaveManager:SetFolder("FluentScriptHub/specific-game")
-
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
-
-Window:SelectTab(1)
-
-Library:Notify{
-    Title = "Fluent",
-    Content = "The script has been loaded.",
-    Duration = 8
-}
-
-SaveManager:LoadAutoloadConfig()
+-- Initialize the list display
+updateAuraListDisplay()
