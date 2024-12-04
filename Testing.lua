@@ -65,12 +65,6 @@ task.spawn(function()
     end
 end)
 
--- Function to update the Aura List Paragraph
-local function updateAuraList(auraListParagraph)
-    local content = table.concat(aurasToDelete, "\n")
-    auraListParagraph:SetContent(content == "" and "No auras in the list." or content)
-end
-
 -- Create Subheading "Quick Roll"
 Tabs.Main:CreateParagraph("QuickRollSubheading", {
     Title = "Quick Roll",
@@ -94,15 +88,6 @@ Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
     ContentAlignment = "Middle"
 })
 
--- Create a dynamically updating Aura List paragraph
-local auraListParagraph = Tabs.Main:CreateParagraph("AuraList", {
-    Title = "Current Auras to Delete",
-    Content = "Loading...",
-    TitleAlignment = "Middle",
-    ContentAlignment = "Left"
-})
-updateAuraList(auraListParagraph) -- Initial update
-
 -- Create a Textbox for adding/removing auras
 local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Title = "Aura Name",
@@ -110,6 +95,15 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Placeholder = "Enter Aura Name",
     Numeric = false,
     Finished = true,
+})
+
+-- Create a Textbox to display the current auras in the list
+local auraListTextbox = Tabs.Main:CreateInput("AuraListDisplay", {
+    Title = "Current Auras to Delete",
+    Default = table.concat(aurasToDelete, ", "), -- Initialize with the current list
+    Placeholder = "Auras will be displayed here.",
+    Numeric = false,
+    Finished = false, -- Set to false to disable finalizing the input
 })
 
 -- Function to add or remove an aura from the aurasToDelete list
@@ -141,7 +135,9 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        updateAuraList(auraListParagraph) -- Update the list after any change
+        
+        -- Update the aura list display after modification
+        auraListTextbox:SetValue(table.concat(aurasToDelete, ", "))
     else
         Library:Notify{
             Title = "Invalid Input",
