@@ -126,6 +126,9 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
+
+        -- Update the list of auras to delete immediately
+        updateAuraList()
     else
         Library:Notify{
             Title = "Invalid Input",
