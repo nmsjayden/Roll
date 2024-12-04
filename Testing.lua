@@ -126,6 +126,9 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
+
+        -- Update the aura list display
+        updateAuraList()
     else
         Library:Notify{
             Title = "Invalid Input",
@@ -142,57 +145,18 @@ Tabs.Main:CreateButton{
     Callback = addOrRemoveAura
 }
 
--- Create a Label to display the current auras in the list
-local auraListLabel = Tabs.Main:CreateParagraph("AuraListDisplay", {
-    Title = "Current Auras to Delete:",
-    Content = table.concat(aurasToDelete, "\n"),  -- Join the list as a string
-    TitleAlignment = "Middle",
-    ContentAlignment = "TopLeft"
+-- Create a List to display the auras
+local auraList = Tabs.Main:CreateList("AuraList", {
+    Title = "Auras to Delete",
+    Height = 200,
+    Width = 300,
+    Values = aurasToDelete,
+    ItemHeight = 25,
 })
 
--- Function to update the displayed aura list
+-- Function to update the list with the current aurasToDelete
 local function updateAuraList()
-    auraListLabel:SetValue(table.concat(aurasToDelete, "\n"))
-end
-
--- Call updateAuraList after adding or removing an aura
-local function addOrRemoveAura()
-    local auraName = auraTextbox.Value
-    if auraName and auraName ~= "" then
-        local found = false
-        for i, v in ipairs(aurasToDelete) do
-            if v == auraName then
-                -- Remove it if found
-                table.remove(aurasToDelete, i)
-                Library:Notify{
-                    Title = "Aura Removed",
-                    Content = "Aura '" .. auraName .. "' has been removed from the list.",
-                    Duration = 4
-                }
-                found = true
-                break
-            end
-        end
-        
-        if not found then
-            -- Add the aura if not found
-            table.insert(aurasToDelete, auraName)
-            Library:Notify{
-                Title = "Aura Added",
-                Content = "Aura '" .. auraName .. "' has been added to the list.",
-                Duration = 4
-            }
-        end
-        
-        -- Update the aura list display after modification
-        updateAuraList()
-    else
-        Library:Notify{
-            Title = "Invalid Input",
-            Content = "Please enter a valid aura name.",
-            Duration = 4
-        }
-    end
+    auraList:SetValues(aurasToDelete)
 end
 
 -- Interface and save managers
