@@ -3,7 +3,7 @@ local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.
 local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
 
 local Window = Library:CreateWindow{
-    Title = "Fluent " .. Library.Version,
+    Title = `Fluent {Library.Version}`,
     SubTitle = "by Actual Master Oogway",
     TabWidth = 160,
     Size = UDim2.fromOffset(830, 525),
@@ -65,27 +65,11 @@ task.spawn(function()
     end
 end)
 
--- Create Subheading "Quick Roll"
-Tabs.Main:CreateParagraph("QuickRollSubheading", {
-    Title = "Quick Roll",
-    Content = "",
-    TitleAlignment = "Middle",
-    ContentAlignment = "Middle"
-})
-
 -- Create the Quick Roll Toggle in the Main tab
 Tabs.Main:CreateToggle("Quick Roll Toggle", {
     Title = "Activate Quick Roll", 
     Default = false, 
     Callback = toggleScript
-})
-
--- Create Subheading "Aura List Config"
-Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
-    Title = "Aura List Config",
-    Content = "",
-    TitleAlignment = "Middle",
-    ContentAlignment = "Middle"
 })
 
 -- Create a Textbox for adding/removing auras
@@ -126,7 +110,6 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        updateAuraList()  -- Update the aura list UI
     else
         Library:Notify{
             Title = "Invalid Input",
@@ -142,19 +125,6 @@ Tabs.Main:CreateButton{
     Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
 }
-
--- Create a list to show the aurasToDelete
-local auraListLabel = Tabs.Main:CreateParagraph("AuraList", {
-    Title = "Auras To Delete",
-    Content = table.concat(aurasToDelete, "\n"),
-    TitleAlignment = "Middle",
-    ContentAlignment = "TopLeft"
-})
-
--- Function to update the aura list UI
-local function updateAuraList()
-    auraListLabel:SetValue(table.concat(aurasToDelete, "\n"))
-end
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
