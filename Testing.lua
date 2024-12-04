@@ -126,9 +126,6 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-
-        -- Update the aura list display
-        updateAuraList()
     else
         Library:Notify{
             Title = "Invalid Input",
@@ -144,20 +141,6 @@ Tabs.Main:CreateButton{
     Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
 }
-
--- Create a List to display the auras
-local auraList = Tabs.Main:CreateList("AuraList", {
-    Title = "Auras to Delete",
-    Height = 200,
-    Width = 300,
-    Values = aurasToDelete,
-    ItemHeight = 25,
-})
-
--- Function to update the list with the current aurasToDelete
-local function updateAuraList()
-    auraList:SetValues(aurasToDelete)
-end
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
