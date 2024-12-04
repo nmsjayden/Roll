@@ -55,7 +55,6 @@ task.spawn(function()
     while true do
         task.wait(0.01)
         if isScriptActive then
-            -- Only run the script if the toggle is on
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
             for _, d in ipairs(aurasToDelete) do
@@ -97,7 +96,7 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Finished = true,
 })
 
--- Function to add or remove an aura from the aurasToDelete list
+-- Create Add/Remove Aura button (combined into one)
 local function addOrRemoveAura()
     local auraName = auraTextbox.Value
     if auraName and auraName ~= "" then
@@ -126,7 +125,8 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        -- Update the Aura List display
+        
+        -- Update the aura list display
         updateAuraList()
     else
         Library:Notify{
@@ -137,27 +137,46 @@ local function addOrRemoveAura()
     end
 end
 
--- Create Add/Remove Aura button (combined into one)
 Tabs.Main:CreateButton{
     Title = "Add/Remove Aura",
     Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
 }
 
--- Create a non-interactable list to display auras
-local auraList = Tabs.Main:CreateList("AuraList", {
-    Title = "Current Auras to Delete",
-    Values = aurasToDelete,
-    Height = 150,
-    MaxHeight = 150,
-    Multi = false,
-    Interactable = false, -- Disable interaction with the list
-})
+-- Create a scrolling frame for displaying the aura list
+local auraListFrame = Instance.new("ScrollingFrame")
+auraListFrame.Size = UDim2.new(1, 0, 0.3, 0) -- Adjust the size as needed
+auraListFrame.Position = UDim2.new(0, 0, 0.7, 0)
+auraListFrame.BackgroundTransparency = 1
+auraListFrame.Parent = Tabs.Main
 
--- Function to update the Aura List
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.FillDirection = Enum.FillDirection.Vertical
+UIListLayout.Parent = auraListFrame
+
+-- Function to update the aura list in the display
 local function updateAuraList()
-    auraList:SetValues(aurasToDelete)
+    -- Clear current list
+    for _, child in pairs(auraListFrame:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
+    end
+
+    -- Add updated list of auras
+    for _, aura in ipairs(aurasToDelete) do
+        local auraLabel = Instance.new("TextLabel")
+        auraLabel.Text = aura
+        auraLabel.Size = UDim2.new(1, 0, 0, 25)
+        auraLabel.TextSize = 16
+        auraLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        auraLabel.BackgroundTransparency = 1
+        auraLabel.Parent = auraListFrame
+    end
 end
+
+-- Initial update of the aura list when the script loads
+updateAuraList()
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
