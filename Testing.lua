@@ -65,13 +65,6 @@ task.spawn(function()
     end
 end)
 
--- Function to update the aura list display
-local auraListLabel
-local function updateAuraList()
-    local auraText = table.concat(aurasToDelete, "\n")
-    auraListLabel:SetContent(auraText)
-end
-
 -- Create Subheading "Quick Roll"
 Tabs.Main:CreateParagraph("QuickRollSubheading", {
     Title = "Quick Roll",
@@ -133,7 +126,7 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        -- Update the aura list display
+        -- Update the Aura List display
         updateAuraList()
     else
         Library:Notify{
@@ -151,13 +144,20 @@ Tabs.Main:CreateButton{
     Callback = addOrRemoveAura
 }
 
--- Create the aura list display
-auraListLabel = Tabs.Main:CreateParagraph("AuraListDisplay", {
-    Title = "Current Aura List",
-    Content = table.concat(aurasToDelete, "\n"),
-    TitleAlignment = "Left",
-    ContentAlignment = "Left"
+-- Create a non-interactable list to display auras
+local auraList = Tabs.Main:CreateList("AuraList", {
+    Title = "Current Auras to Delete",
+    Values = aurasToDelete,
+    Height = 150,
+    MaxHeight = 150,
+    Multi = false,
+    Interactable = false, -- Disable interaction with the list
 })
+
+-- Function to update the Aura List
+local function updateAuraList()
+    auraList:SetValues(aurasToDelete)
+end
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
