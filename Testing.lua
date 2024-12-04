@@ -126,6 +126,27 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
+        
+        -- Update the list in the UI immediately
+        updateAuraList()
+    else
+        Library:Notify{
+            Title = "Invalid Input",
+            Content = "Please enter a valid aura name.",
+            Duration = 4
+        }
+    end
+end
+        
+        if not found then
+            -- Add the aura if not found
+            table.insert(aurasToDelete, auraName)
+            Library:Notify{
+                Title = "Aura Added",
+                Content = "Aura '" .. auraName .. "' has been added to the list.",
+                Duration = 4
+            }
+        end
 
         -- Update the list of auras to delete immediately
         updateAuraList()
