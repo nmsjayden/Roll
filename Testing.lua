@@ -37,33 +37,49 @@ local aurasToDelete = {
 local isScriptActive = false
 local amountToDelete = "6"
 
-local function processAuras()
-    local r = game:GetService("ReplicatedStorage")
-    local f = r:FindFirstChild("Auras")
-    if f then
-        for _, b in pairs(f:GetChildren()) do
-            r.Remotes.AcceptAura:FireServer(b.Name, true)
-        end
-    end
+-- Function to update the aura list display
+local function updateAuraListDisplay(paragraph)
+    local listContent = table.concat(aurasToDelete, "\n")
+    paragraph:SetContent(listContent ~= "" and listContent or "No auras in the list.")
 end
 
-local function toggleScript(state)
-    isScriptActive = state
-end
-
-task.spawn(function()
-    while true do
-        task.wait(0.01)
-        if isScriptActive then
-            -- Only run the script if the toggle is on
-            game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
-            processAuras()
-            for _, d in ipairs(aurasToDelete) do
-                game:GetService("ReplicatedStorage").Remotes.DeleteAura:FireServer(d, amountToDelete)
+-- Function to add or remove an aura from the list
+local function addOrRemoveAura(auraTextbox, paragraph)
+    local auraName = auraTextbox.Value
+    if auraName and auraName ~= "" then
+        local found = false
+        for i, v in ipairs(aurasToDelete) do
+            if v == auraName then
+                table.remove(aurasToDelete, i) -- Remove aura
+                Library:Notify{
+                    Title = "Aura Removed",
+                    Content = "Aura '" .. auraName .. "' has been removed from the list.",
+                    Duration = 4
+                }
+                found = true
+                break
             end
         end
+        
+        if not found then
+            table.insert(aurasToDelete, auraName) -- Add aura
+            Library:Notify{
+                Title = "Aura Added",
+                Content = "Aura '" .. auraName .. "' has been added to the list.",
+                Duration = 4
+            }
+        end
+        
+        -- Update the displayed list
+        updateAuraListDisplay(paragraph)
+    else
+        Library:Notify{
+            Title = "Invalid Input",
+            Content = "Please enter a valid aura name.",
+            Duration = 4
+        }
     end
-end)
+end
 
 -- Create Subheading "Quick Roll"
 Tabs.Main:CreateParagraph("QuickRollSubheading", {
@@ -77,7 +93,9 @@ Tabs.Main:CreateParagraph("QuickRollSubheading", {
 Tabs.Main:CreateToggle("Quick Roll Toggle", {
     Title = "Activate Quick Roll", 
     Default = false, 
-    Callback = toggleScript
+    Callback = function(state)
+        isScriptActive = state
+    end
 })
 
 -- Create Subheading "Aura List Config"
@@ -88,7 +106,7 @@ Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
     ContentAlignment = "Middle"
 })
 
--- Create a Textbox for adding/removing auras
+-- Create the Textbox for Aura Name input
 local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Title = "Aura Name",
     Default = "",
@@ -97,106 +115,22 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Finished = true,
 })
 
--- Function to add or remove an aura from the aurasToDelete list
-local function addOrRemoveAura()
-    local auraName = auraTextbox.Value
-    if auraName and auraName ~= "" then
-        -- Check if the aura is already in the list
-        local found = false
-        for i, v in ipairs(aurasToDelete) do
-            if v == auraName then
-                -- Remove it if found
-                table.remove(aurasToDelete, i)
-                Library:Notify{
-                    Title = "Aura Removed",
-                    Content = "Aura '" .. auraName .. "' has been removed from the list.",
-                    Duration = 4
-                }
-                found = true
-                break
-            end
-        end
-        
-        if not found then
-            -- Add the aura if not found
-            table.insert(aurasToDelete, auraName)
-            Library:Notify{
-                Title = "Aura Added",
-                Content = "Aura '" .. auraName .. "' has been added to the list.",
-                Duration = 4
-            }
-        end
-        
-        -- Update the list in the UI immediately
-        updateAuraList()
-    else
-        Library:Notify{
-            Title = "Invalid Input",
-            Content = "Please enter a valid aura name.",
-            Duration = 4
-        }
-    end
-end
-        
-        if not found then
-            -- Add the aura if not found
-            table.insert(aurasToDelete, auraName)
-            Library:Notify{
-                Title = "Aura Added",
-                Content = "Aura '" .. auraName .. "' has been added to the list.",
-                Duration = 4
-            }
-        end
+-- Create a Paragraph to display the aura list
+local auraListParagraph = Tabs.Main:CreateParagraph("AuraListDisplay", {
+    Title = "Current Auras",
+    Content = table.concat(aurasToDelete, "\n"),
+    TitleAlignment = "Middle",
+    ContentAlignment = "Middle"
+})
 
-        -- Update the list of auras to delete immediately
-        updateAuraList()
-    else
-        Library:Notify{
-            Title = "Invalid Input",
-            Content = "Please enter a valid aura name.",
-            Duration = 4
-        }
-    end
-end
-
--- Create Add/Remove Aura button (combined into one)
+-- Create the Add/Remove button
 Tabs.Main:CreateButton{
     Title = "Add/Remove Aura",
     Description = "Adds or removes the aura from the list of auras to delete.",
-    Callback = addOrRemoveAura
+    Callback = function()
+        addOrRemoveAura(auraTextbox, auraListParagraph)
+    end
 }
-
--- Create a list label to display the auras in aurasToDelete
-local auraListLabel
-
--- Function to update the displayed list of auras in the Main tab
-local function updateAuraList()
-    -- Convert the aurasToDelete table into a string for display
-    local auraListText = table.concat(aurasToDelete, "\n")
-
-    -- Create or update the list label
-    if not auraListLabel then
-        auraListLabel = Tabs.Main:CreateParagraph("AuraListDisplay", {
-            Title = "Current Auras to Delete",
-            Content = auraListText,
-            TitleAlignment = "Middle",
-            ContentAlignment = "Middle"
-        })
-    else
-        auraListLabel:SetValue(auraListText)  -- Update the label with the new list
-    end
-end
-
--- Task to update the aura list constantly
-task.spawn(function()
-    while true do
-        task.wait(1)  -- Update every second (you can adjust the frequency)
-        updateAuraList()  -- Refresh the displayed list
-    end
-end)
-
--- Initial display of the aura list
-updateAuraList()
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
