@@ -55,6 +55,7 @@ task.spawn(function()
     while true do
         task.wait(0.01)
         if isScriptActive then
+            -- Only run the script if the toggle is on
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
             for _, d in ipairs(aurasToDelete) do
@@ -96,7 +97,7 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Finished = true,
 })
 
--- Create Add/Remove Aura button (combined into one)
+-- Function to add or remove an aura from the aurasToDelete list
 local function addOrRemoveAura()
     local auraName = auraTextbox.Value
     if auraName and auraName ~= "" then
@@ -125,9 +126,6 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        
-        -- Update the aura list display
-        updateAuraList()
     else
         Library:Notify{
             Title = "Invalid Input",
@@ -137,46 +135,65 @@ local function addOrRemoveAura()
     end
 end
 
+-- Create Add/Remove Aura button (combined into one)
 Tabs.Main:CreateButton{
     Title = "Add/Remove Aura",
     Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
 }
 
--- Create a scrolling frame for displaying the aura list
-local auraListFrame = Instance.new("ScrollingFrame")
-auraListFrame.Size = UDim2.new(1, 0, 0.3, 0) -- Adjust the size as needed
-auraListFrame.Position = UDim2.new(0, 0, 0.7, 0)
-auraListFrame.BackgroundTransparency = 1
-auraListFrame.Parent = Tabs.Main
+-- Create a Label to display the current auras in the list
+local auraListLabel = Tabs.Main:CreateParagraph("AuraListDisplay", {
+    Title = "Current Auras to Delete:",
+    Content = table.concat(aurasToDelete, "\n"),  -- Join the list as a string
+    TitleAlignment = "Middle",
+    ContentAlignment = "TopLeft"
+})
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.FillDirection = Enum.FillDirection.Vertical
-UIListLayout.Parent = auraListFrame
-
--- Function to update the aura list in the display
+-- Function to update the displayed aura list
 local function updateAuraList()
-    -- Clear current list
-    for _, child in pairs(auraListFrame:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
-        end
-    end
-
-    -- Add updated list of auras
-    for _, aura in ipairs(aurasToDelete) do
-        local auraLabel = Instance.new("TextLabel")
-        auraLabel.Text = aura
-        auraLabel.Size = UDim2.new(1, 0, 0, 25)
-        auraLabel.TextSize = 16
-        auraLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        auraLabel.BackgroundTransparency = 1
-        auraLabel.Parent = auraListFrame
-    end
+    auraListLabel:SetValue(table.concat(aurasToDelete, "\n"))
 end
 
--- Initial update of the aura list when the script loads
-updateAuraList()
+-- Call updateAuraList after adding or removing an aura
+local function addOrRemoveAura()
+    local auraName = auraTextbox.Value
+    if auraName and auraName ~= "" then
+        local found = false
+        for i, v in ipairs(aurasToDelete) do
+            if v == auraName then
+                -- Remove it if found
+                table.remove(aurasToDelete, i)
+                Library:Notify{
+                    Title = "Aura Removed",
+                    Content = "Aura '" .. auraName .. "' has been removed from the list.",
+                    Duration = 4
+                }
+                found = true
+                break
+            end
+        end
+        
+        if not found then
+            -- Add the aura if not found
+            table.insert(aurasToDelete, auraName)
+            Library:Notify{
+                Title = "Aura Added",
+                Content = "Aura '" .. auraName .. "' has been added to the list.",
+                Duration = 4
+            }
+        end
+        
+        -- Update the aura list display after modification
+        updateAuraList()
+    else
+        Library:Notify{
+            Title = "Invalid Input",
+            Content = "Please enter a valid aura name.",
+            Duration = 4
+        }
+    end
+end
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
