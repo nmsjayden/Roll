@@ -65,27 +65,11 @@ task.spawn(function()
     end
 end)
 
--- Create Subheading "Quick Roll"
-Tabs.Main:CreateParagraph("QuickRollSubheading", {
-    Title = "Quick Roll",
-    Content = "",
-    TitleAlignment = "Middle",
-    ContentAlignment = "Middle"
-})
-
 -- Create the Quick Roll Toggle in the Main tab
 Tabs.Main:CreateToggle("Quick Roll Toggle", {
     Title = "Activate Quick Roll", 
     Default = false, 
     Callback = toggleScript
-})
-
--- Create Subheading "Aura List Config"
-Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
-    Title = "Aura List Config",
-    Content = "",
-    TitleAlignment = "Middle",
-    ContentAlignment = "Middle"
 })
 
 -- Create a Textbox for adding/removing auras
