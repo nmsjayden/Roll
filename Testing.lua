@@ -97,15 +97,6 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Finished = true,
 })
 
--- Create a Textbox to display the current auras in the list
-local auraListTextbox = Tabs.Main:CreateInput("AuraListDisplay", {
-    Title = "Current Auras to Delete",
-    Default = table.concat(aurasToDelete, ", "), -- Initialize with the current list
-    Placeholder = "Auras will be displayed here.",
-    Numeric = false,
-    Finished = false, -- Set to false to disable finalizing the input
-})
-
 -- Function to add or remove an aura from the aurasToDelete list
 local function addOrRemoveAura()
     local auraName = auraTextbox.Value
@@ -135,9 +126,6 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        
-        -- Update the aura list display after modification
-        auraListTextbox:SetValue(table.concat(aurasToDelete, ", "))
     else
         Library:Notify{
             Title = "Invalid Input",
