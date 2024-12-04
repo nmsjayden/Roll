@@ -3,7 +3,7 @@ local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.
 local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
 
 local Window = Library:CreateWindow{
-    Title = "Fluent " .. Library.Version,
+    Title = `Fluent {Library.Version}`,
     SubTitle = "by Actual Master Oogway",
     TabWidth = 160,
     Size = UDim2.fromOffset(830, 525),
@@ -55,6 +55,7 @@ task.spawn(function()
     while true do
         task.wait(0.01)
         if isScriptActive then
+            -- Only run the script if the toggle is on
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
             for _, d in ipairs(aurasToDelete) do
@@ -63,6 +64,13 @@ task.spawn(function()
         end
     end
 end)
+
+-- Function to update the aura list display
+local auraListLabel
+local function updateAuraList()
+    local auraText = table.concat(aurasToDelete, "\n")
+    auraListLabel:SetContent(auraText)
+end
 
 -- Create Subheading "Quick Roll"
 Tabs.Main:CreateParagraph("QuickRollSubheading", {
@@ -96,15 +104,6 @@ local auraTextbox = Tabs.Main:CreateInput("AuraNameInput", {
     Finished = true,
 })
 
--- Create a Textbox to display the current auras in the list
-local auraListTextbox = Tabs.Main:CreateInput("AuraListDisplay", {
-    Title = "Current Auras to Delete",
-    Default = table.concat(aurasToDelete, ", "), -- Initialize with the current list
-    Placeholder = "Auras will be displayed here.",
-    Numeric = false,
-    Finished = false, -- Set to false to disable finalizing the input
-})
-
 -- Function to add or remove an aura from the aurasToDelete list
 local function addOrRemoveAura()
     local auraName = auraTextbox.Value
@@ -134,9 +133,8 @@ local function addOrRemoveAura()
                 Duration = 4
             }
         end
-        
-        -- Update the aura list display after modification
-        auraListTextbox:SetValue(table.concat(aurasToDelete, ", "))
+        -- Update the aura list display
+        updateAuraList()
     else
         Library:Notify{
             Title = "Invalid Input",
@@ -152,6 +150,14 @@ Tabs.Main:CreateButton{
     Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
 }
+
+-- Create the aura list display
+auraListLabel = Tabs.Main:CreateParagraph("AuraListDisplay", {
+    Title = "Current Aura List",
+    Content = table.concat(aurasToDelete, "\n"),
+    TitleAlignment = "Left",
+    ContentAlignment = "Left"
+})
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
