@@ -22,18 +22,66 @@ local Tabs = {
 
 local Options = Library.Options
 
+-- Create an independent button outside of the main interface for toggling visibility
+local externalButton = Instance.new("TextButton")
+externalButton.Parent = game.Players.LocalPlayer.PlayerGui
+externalButton.Size = UDim2.new(0, 150, 0, 50) -- Adjust size as needed
+externalButton.Position = UDim2.new(0.5, -75, 0, 100) -- Position it somewhere visible on the screen
+externalButton.Text = "Toggle Interface"
+externalButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+externalButton.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+externalButton.Font = Enum.Font.SourceSans
+externalButton.TextSize = 24
+
+-- Function to toggle the visibility of the interface window
+local function toggleWindowVisibility()
+    if Window.Visible then
+        Window:Hide()  -- Hide the window if it's currently visible
+    else
+        Window:Show()  -- Show the window if it's currently hidden
+    end
+end
+
+-- Connect the external button to toggle the window visibility
+externalButton.MouseButton1Click:Connect(toggleWindowVisibility)
+
 -- Utility function to load the aura list from file
 local function loadAuraListFromFile()
     local auraList = {}
     local filePath = "Saved Auras/AuraList.txt"
-    
-    -- Check if the file exists
+
+    -- Ensure the folder exists
+    local folderPath = "Saved Auras"
+    if not isfolder(folderPath) then
+        makefolder(folderPath)
+    end
+
+    -- If the file doesn't exist, fetch it from GitHub
+    if not isfile(filePath) then
+        local url = "https://raw.githubusercontent.com/nmsjayden/Roll/main/AuraList.txt"
+        local success, response = pcall(function()
+            return game:HttpGet(url)
+        end)
+        
+        if success and response then
+            writefile(filePath, response)
+        else
+            Library:Notify{
+                Title = "Error",
+                Content = "Failed to fetch AuraList from GitHub.",
+                Duration = 6
+            }
+        end
+    end
+
+    -- Read the file and populate the aura list
     if isfile(filePath) then
         local fileContents = readfile(filePath)
         for line in string.gmatch(fileContents, "[^\r\n]+") do
             table.insert(auraList, line)
         end
     end
+
     return auraList
 end
 
@@ -125,7 +173,6 @@ task.spawn(function()
     while true do
         task.wait(0.01)
         if isScriptActive then
-            -- Only run the script if the toggle is on
             game:GetService("ReplicatedStorage").Remotes.ZachRLL:InvokeServer()
             processAuras()
             for _, d in ipairs(aurasToDelete) do
@@ -222,10 +269,7 @@ Tabs.Settings:CreateButton{
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
-
 SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes{}
-InterfaceManager:SetFolder("FluentScriptHub")
 SaveManager:SetFolder("FluentScriptHub/specific-game")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
