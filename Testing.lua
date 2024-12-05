@@ -3,7 +3,7 @@ local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.
 local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
 
 local Window = Library:CreateWindow{
-    Title = `Fluent {Library.Version}`,
+    Title = `Digitized Moon Hub {Library.Version}`,
     SubTitle = "by Aro Moon ;3",
     TabWidth = 160,
     Size = UDim2.fromOffset(830, 525),
