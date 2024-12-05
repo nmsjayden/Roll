@@ -13,33 +13,58 @@ local Window = Library:CreateWindow{
     Theme = "Dark",
 }
 
--- Create the tabs with "List" tab in between "Main" and "Settings"
+-- Create the tabs
 local Tabs = {
-    Main = Window:CreateTab{
-        Title = "Main",
-        Icon = "circle-user-round"
-    },
-    List = Window:CreateTab{
-        Title = "List",
-        Icon = "list"
-    },
-    Settings = Window:CreateTab{
-        Title = "Settings",
-        Icon = "settings"
-    }
+    Main = Window:CreateTab{ Title = "Main", Icon = "circle-user-round" },
+    List = Window:CreateTab{ Title = "List", Icon = "list" },
+    Settings = Window:CreateTab{ Title = "Settings", Icon = "settings" }
 }
 
 local Options = Library.Options
 
--- Aura list data
-local aurasToDelete = {
-    "Heat", "Flames Curse", "Dark Matter", "Frigid", "Sorcerous", "Starstruck", "Voltage",
-    "Constellar", "Iridescent", "Gale", "Shiver", "Bloom", "Fiend", "Tidal", "Flame", 
-    "Frost", "Antimatter", "Numerical", "Orbital", "Moonlit", "Glacial", "Bloom", "Prism", 
-    "Nebula", "Numerical", "/|Errxr|\\", "Storm", "Storm: True Form", "GLADIATOR", 
-    "Prism: True Form", "Aurora", "Iridescent: True Form", "Grim Reaper: True Form", 
-    "Iridescent: True Form", "Syberis"
-}
+-- Utility function to load the aura list from file
+local function loadAuraListFromFile()
+    local auraList = {}
+    local filePath = "Saved Auras/AuraList.txt"
+    
+    -- Check if the file exists
+    if isfile(filePath) then
+        local fileContents = readfile(filePath)
+        for line in string.gmatch(fileContents, "[^\r\n]+") do
+            table.insert(auraList, line)
+        end
+    end
+    return auraList
+end
+
+-- Load the aura list from the file initially
+local aurasToDelete = loadAuraListFromFile()
+
+-- Utility function to save aura list to a file
+local function saveAuraListToFile()
+    -- Ensure the folder exists
+    local folderPath = "Saved Auras"
+    if not isfolder(folderPath) then
+        makefolder(folderPath)
+    end
+
+    -- File path for AuraList.txt
+    local filePath = folderPath .. "/AuraList.txt"
+
+    -- Remove the existing file if it exists
+    if isfile(filePath) then
+        delfile(filePath)
+    end
+
+    -- Write the updated auras to the file
+    writefile(filePath, table.concat(aurasToDelete, "\n"))
+
+    Library:Notify{
+        Title = "Aura List Saved",
+        Content = "Aura list has been saved to: " .. filePath,
+        Duration = 6
+    }
+end
 
 -- Create a dropdown to hold the aura list in the "List" tab
 local listDropdown
@@ -79,7 +104,6 @@ Tabs.List:CreateButton{
 -- Initial update of the aura list when the script runs
 updateAuraList()
 
--- Rest of your code...
 local isScriptActive = false
 local amountToDelete = "6"
 
@@ -188,6 +212,13 @@ Tabs.Main:CreateButton{
     Callback = addOrRemoveAura
 }
 
+-- Create a button in the Settings tab to save the aura list to a file
+Tabs.Settings:CreateButton{
+    Title = "Save Aura List to File",
+    Description = "Saves the current aura list to a text file in the 'Saved Auras' folder.",
+    Callback = saveAuraListToFile
+}
+
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
@@ -209,3 +240,4 @@ Library:Notify{
 }
 
 SaveManager:LoadAutoloadConfig()
+updateAuraList()
