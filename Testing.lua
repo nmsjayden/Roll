@@ -222,26 +222,26 @@ local function executeTeleportScript()
     end
 end
 
-local function toggleTeleportScript()
-    if teleportScriptLoaded then
+local function toggleTeleportScript(state)
+    if state then
+        -- Load and execute the teleport script
+        print("Loading teleport script...")
+        executeTeleportScript()
+        teleportScriptLoaded = true
+    else
         -- Pause or resume the teleport script if it is running
         print("Toggling pause/resume for teleport script...")
         if teleportScriptModule and teleportScriptModule.togglePause then
             teleportScriptModule.togglePause()
         end
         teleportScriptLoaded = false
-    else
-        -- Load and execute the teleport script
-        print("Loading teleport script...")
-        executeTeleportScript()
-        teleportScriptLoaded = true
     end
 end
 
 -- Create the Teleport Script Toggle button
 Tabs.Main:CreateToggle("TeleportScriptToggle", {
     Title = "Activate Teleport Script", 
-    Default = false, 
+    Default = false,  -- Default is set to false (off)
     Callback = toggleTeleportScript
 })
 
