@@ -4,8 +4,18 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Flags to control pausing and resuming the actions
-local isPaused = false
+-- Flag to pause or unpause the script
+local paused = false
+
+-- Function to toggle the pause state
+local function togglePause()
+    paused = not paused
+    if paused then
+        print("Script paused.")
+    else
+        print("Script resumed.")
+    end
+end
 
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
 local function findNearestPotion(character)
@@ -30,7 +40,12 @@ end
 
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
-    while not isPaused do  -- Check if it's paused before continuing
+    while true do
+        if paused then
+            wait(1)  -- Pause the loop for a second before checking again if paused
+            continue
+        end
+
         local potion = findNearestPotion(character)
         if potion then
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
@@ -59,7 +74,12 @@ end
 
 -- Retry potion search every 10 seconds
 local function retryPotionSearch(character)
-    while not isPaused do  -- Check if it's paused before continuing
+    while true do
+        if paused then
+            wait(1)  -- Pause the loop for a second before checking again if paused
+            continue
+        end
+
         wait(10) -- Retry searching for items every 10 seconds
         local gemCount = 0
         local speedPotionCount = 0
@@ -95,6 +115,7 @@ end
 -- Function to disable collision (noclip) for the character
 local function disableCollision(character)
     RunService.Stepped:Connect(function()
+        if paused then return end  -- Skip if paused
         for _, v in pairs(character:GetChildren()) do
             if v:IsA("BasePart") then
                 pcall(function()
@@ -132,12 +153,7 @@ if player.Character then
     onCharacterAdded(player.Character)
 end
 
--- Pause the script if requested
-function pauseScript()
-    isPaused = true
-end
-
--- Resume the script if requested
-function resumeScript()
-    isPaused = false
-end
+-- Expose the togglePause function to be used externally
+return {
+    togglePause = togglePause
+}
