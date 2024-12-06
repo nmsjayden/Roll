@@ -4,6 +4,9 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
+-- Flags to control pausing and resuming the actions
+local isPaused = false
+
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
 local function findNearestPotion(character)
     local closestPotion = nil
@@ -27,7 +30,7 @@ end
 
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
-    while true do
+    while not isPaused do  -- Check if it's paused before continuing
         local potion = findNearestPotion(character)
         if potion then
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
@@ -56,7 +59,7 @@ end
 
 -- Retry potion search every 10 seconds
 local function retryPotionSearch(character)
-    while true do
+    while not isPaused do  -- Check if it's paused before continuing
         wait(10) -- Retry searching for items every 10 seconds
         local gemCount = 0
         local speedPotionCount = 0
@@ -127,4 +130,14 @@ player.CharacterAdded:Connect(onCharacterAdded)
 -- Initialize script when it runs
 if player.Character then
     onCharacterAdded(player.Character)
+end
+
+-- Pause the script if requested
+function pauseScript()
+    isPaused = true
+end
+
+-- Resume the script if requested
+function resumeScript()
+    isPaused = false
 end
