@@ -3,8 +3,8 @@ local SaveManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.
 local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau"))()
 
 local Window = Library:CreateWindow{
-    Title = `Digitized Moon Hub V2.7.3`,
-    SubTitle = "by Aro Moon ;3",
+    Title = `Fluent {Library.Version}`,
+    SubTitle = "by Actual Master Oogway",
     TabWidth = 160,
     Size = UDim2.fromOffset(830, 525),
     Resize = true,
@@ -197,6 +197,54 @@ Tabs.Main:CreateToggle("Quick Roll Toggle", {
     Callback = toggleScript
 })
 
+-- Create Subheading "Teleport Toggle" in Main tab
+Tabs.Main:CreateParagraph("TeleportToggleSubheading", {
+    Title = "Teleport Toggle",
+    Content = "",
+    TitleAlignment = "Middle",
+    ContentAlignment = "Middle"
+})
+
+-- Teleport Script Toggle
+local teleportScriptLoaded = false
+local teleportScriptModule
+
+local function executeTeleportScript()
+    local success, result = pcall(function()
+        -- Load the external teleport script
+        teleportScriptModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/TJule.lua"))()
+    end)
+
+    if success then
+        print("Teleport script loaded successfully.")
+    else
+        warn("Failed to load teleport script: " .. result)
+    end
+end
+
+local function toggleTeleportScript()
+    if teleportScriptLoaded then
+        -- Pause or resume the teleport script if it is running
+        print("Toggling pause/resume for teleport script...")
+        if teleportScriptModule and teleportScriptModule.togglePause then
+            teleportScriptModule.togglePause()
+        end
+        teleportScriptLoaded = false
+    else
+        -- Load and execute the teleport script
+        print("Loading teleport script...")
+        executeTeleportScript()
+        teleportScriptLoaded = true
+    end
+end
+
+-- Create the Teleport Script Toggle button
+Tabs.Main:CreateToggle("TeleportScriptToggle", {
+    Title = "Activate Teleport Script", 
+    Default = false, 
+    Callback = toggleTeleportScript
+})
+
 -- Create Subheading "Aura List Config" in Main tab
 Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
     Title = "Aura List Config",
@@ -222,47 +270,31 @@ local function addOrRemoveAura()
         local found = false
         for i, v in ipairs(aurasToDelete) do
             if v == auraName then
-                -- Remove it if found
-                table.remove(aurasToDelete, i)
-                Library:Notify{
-                    Title = "Aura Removed",
-                    Content = "Aura '" .. auraName .. "' has been removed from the list.",
-                    Duration = 4
-                }
+                table.remove(aurasToDelete, i)  -- Remove the aura
                 found = true
                 break
             end
         end
         
         if not found then
-            -- Add the aura if not found
-            table.insert(aurasToDelete, auraName)
-            Library:Notify{
-                Title = "Aura Added",
-                Content = "Aura '" .. auraName .. "' has been added to the list.",
-                Duration = 4
-            }
+            table.insert(aurasToDelete, auraName)  -- Add the aura
         end
-    else
-        Library:Notify{
-            Title = "Invalid Input",
-            Content = "Please enter a valid aura name.",
-            Duration = 4
-        }
+
+        updateAuraList()  -- Update the dropdown list to reflect changes
     end
 end
 
--- Create Add/Remove Aura button (combined into one)
+-- Create Add/Remove button
 Tabs.Main:CreateButton{
     Title = "Add/Remove Aura",
-    Description = "Adds or removes the aura from the list of auras to delete.",
+    Description = "Add or remove the aura from the list.",
     Callback = addOrRemoveAura
 }
 
--- Create a button in the Settings tab to save the aura list to a file
+-- Save button to save the updated aura list to the file
 Tabs.Settings:CreateButton{
     Title = "Save Aura List to File",
-    Description = "Saves the current aura list to a text file in the 'Saved Auras' folder.",
+    Description = "Save the current aura list to the file.",
     Callback = saveAuraListToFile
 }
 
