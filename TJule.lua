@@ -7,7 +7,7 @@ local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 -- Flag to pause or unpause the script
 local paused = false
 
--- Variables to store the original position and the state of returning
+-- Variables to store the original position and rotation
 local originalPosition = nil
 local returnedToOriginalPosition = false
 
@@ -50,15 +50,15 @@ local function teleportToPotionAndInteract(character)
             continue
         end
 
-        -- If the original position isn't set, save it
+        -- Save original position when it's first encountered
         if not originalPosition then
             originalPosition = character.PrimaryPart.Position
-            print("Saved original position: " .. math.round(originalPosition.X) .. ", " .. math.round(originalPosition.Y) .. ", " .. math.round(originalPosition.Z))
+            print("Saved original position:", originalPosition.X, originalPosition.Y, originalPosition.Z)
         end
 
         local potion = findNearestPotion(character)
         if potion then
-            -- Reset the returned flag since we found a new potion
+            -- Reset the flag when new potions are found
             returnedToOriginalPosition = false
 
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
@@ -66,25 +66,22 @@ local function teleportToPotionAndInteract(character)
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the potion
-            local interacted = false
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
                     -- Trigger the ProximityPrompt interaction
                     prompt:InputHoldBegin()
                     prompt:InputHoldEnd()
-                    interacted = true
                     break
                 end
             end
         else
-            -- If no potions are found and we haven't yet returned to the original position, teleport back
+            -- If no potions are found and we haven't returned to the original position yet
             if not returnedToOriginalPosition and originalPosition then
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
                 returnedToOriginalPosition = true
                 print("No more potions found. Returned to original position.")
             end
         end
-
         wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
 end
