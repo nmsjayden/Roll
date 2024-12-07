@@ -142,13 +142,6 @@ local function updateAuraList()
     end)
 end
 
--- Add a button to refresh the list
-Tabs.List:CreateButton{
-    Title = "Refresh Aura List",
-    Description = "Click to refresh the list of auras.",
-    Callback = updateAuraList
-}
-
 -- Initial update of the aura list when the script runs
 updateAuraList()
 
