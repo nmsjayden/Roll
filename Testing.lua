@@ -324,7 +324,7 @@ Tabs.Main:CreateParagraph("BlankBox", {
 InterfaceManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
-SaveManager:SetFolder("FluentScriptHub/specific-game")
+SaveManager:SetFolder("Digitized-Moon Hub/specific-game")
 
 InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
@@ -332,7 +332,7 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 Window:SelectTab(1)
 
 Library:Notify{
-    Title = "Fluent",
+    Title = "Aro Moon ;)",
     Content = "The script has been loaded.",
     Duration = 8
 }
