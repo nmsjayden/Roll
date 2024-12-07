@@ -1,5 +1,8 @@
 Heat
 Aurora
+Neptune
+Infernal
+Constellation
 Azure Periastron
 Reborn
 Omniscient
