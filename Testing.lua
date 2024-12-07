@@ -197,8 +197,6 @@ Tabs.Main:CreateToggle("Quick Roll Toggle", {
     Callback = toggleScript
 })
 
- 
- 
 -- Create Subheading "Teleport Toggle" in Main tab
 Tabs.Main:CreateParagraph("TeleportToggleSubheading", {
     Title = "Teleport Toggle",
