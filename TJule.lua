@@ -51,7 +51,7 @@ local function teleportToPotionAndInteract(character)
     while true do
         if paused then
             wait(1)  -- Pause the loop for a second before checking again if paused
-            continue
+            return -- Skip to the next iteration if paused
         end
 
         -- Save original position when it's first encountered
