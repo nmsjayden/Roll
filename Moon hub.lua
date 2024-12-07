@@ -146,7 +146,7 @@ end
 updateAuraList()
 
 local isScriptActive = false
-local amountToDelete = "6"
+local amountToDelete = "1"
 
 local function processAuras()
     local r = game:GetService("ReplicatedStorage")
