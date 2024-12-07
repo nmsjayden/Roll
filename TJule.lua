@@ -71,41 +71,6 @@ local function teleportToPotionAndInteract(character)
     end
 end
 
--- Retry potion search every 10 seconds
-local function retryPotionSearch(character)
-    while true do
-        wait(10) -- Retry searching for items every 10 seconds
-        local gemCount = 0
-        local speedPotionCount = 0
-        local ultimatePotionCount = 0
-        local luckPotionCount = 0
-
-        -- Count all uninteracted potions (Gem, Speed, Ultimate, Luck)
-        for _, obj in pairs(potionsFolder:GetChildren()) do
-            if obj:IsA("Model") then
-                local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
-                if potionPart then
-                    local distance = (character.PrimaryPart.Position - potionPart.Position).Magnitude
-                    if distance < 10 then
-                        if obj.Name == "Gem" then
-                            gemCount = gemCount + 1
-                        elseif obj.Name == "speed_potion" then
-                            speedPotionCount = speedPotionCount + 1
-                        elseif obj.Name == "ultimate_potion" then
-                            ultimatePotionCount = ultimatePotionCount + 1
-                        elseif obj.Name == "luck_potion" then
-                            luckPotionCount = luckPotionCount + 1
-                        end
-                    end
-                end
-            end
-        end
-
-        -- Output the count of uninteracted potions to the console
-        print("Uninteracted Gems: " .. gemCount .. ", Speed Potions: " .. speedPotionCount .. ", Ultimate Potions: " .. ultimatePotionCount .. ", Luck Potions: " .. luckPotionCount)
-    end
-end
-
 -- Function to disable collision (noclip) for the character
 local function disableCollision(character)
     RunService.Stepped:Connect(function()
@@ -127,11 +92,6 @@ local function onCharacterAdded(newCharacter)
     -- Start teleporting and interacting with potions
     coroutine.wrap(function()
         teleportToPotionAndInteract(newCharacter)
-    end)()
-
-    -- Start retrying potion search
-    coroutine.wrap(function()
-        retryPotionSearch(newCharacter)
     end)()
 
     -- Disable collisions for the character
