@@ -4,10 +4,9 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Variables to track original position and retry failures
+-- Variables to store the original position
 local originalPosition = nil
-local failureCount = 0
-local maxFailures = 3
+local returnedToOriginalPosition = false
 
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
 local function findNearestPotion(character)
@@ -30,38 +29,46 @@ local function findNearestPotion(character)
     return closestPotion
 end
 
--- Function to teleport to the potion and interact with its ProximityPrompt
+-- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
     while true do
+        -- If the original position isn't set, save it
+        if not originalPosition then
+            originalPosition = character.PrimaryPart.Position
+        end
+
+        -- Find the nearest potion
         local potion = findNearestPotion(character)
 
         if potion then
-            -- Reset failure count when a potion is found
-            failureCount = 0
+            -- Reset the returned flag since we found a new potion
+            returnedToOriginalPosition = false
 
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
-            local newPosition = potion.Position + Vector3.new(0, 5, 0)
+            local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-            -- Interact with the ProximityPrompt near the potion
+            -- Immediately interact with a ProximityPrompt near the potion
+            local interacted = false
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+                    -- Trigger the ProximityPrompt interaction as quickly as possible
                     prompt:InputHoldBegin()
-                    prompt:InputHoldEnd()
-                    print("Successfully interacted with the ProximityPrompt!")
+                    prompt:InputHoldEnd() -- Instantly trigger the interaction without delay
+                    interacted = true
                     break
                 end
             end
-        else
-            -- Increment failure count if no potion is found
-            failureCount = failureCount + 1
-            print("No potion found. Failure count: " .. failureCount)
 
-            -- If failure count exceeds maxFailures, return to original position
-            if failureCount >= maxFailures and originalPosition then
-                print("Returning to original position...")
-                character:SetPrimaryPartCFrame(originalPosition)
-                failureCount = 0 -- Reset the failure count after returning
+            if interacted then
+                print("Successfully interacted with the ProximityPrompt!")
+            end
+        else
+            -- If no potions are found and we haven't yet returned to the original position, teleport back
+            if not returnedToOriginalPosition and originalPosition then
+                character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
+                returnedToOriginalPosition = true
+                print("No more potions found. Returned to original position.")
             end
         end
 
@@ -72,13 +79,13 @@ end
 -- Retry potion search every 10 seconds
 local function retryPotionSearch(character)
     while true do
-        wait(10)
-
+        wait(10) -- Retry searching for items every 10 seconds
         local gemCount = 0
         local speedPotionCount = 0
         local ultimatePotionCount = 0
         local luckPotionCount = 0
 
+        -- Count all uninteracted potions (Gem, Speed, Ultimate, Luck)
         for _, obj in pairs(potionsFolder:GetChildren()) do
             if obj:IsA("Model") then
                 local potionPart = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
@@ -99,6 +106,7 @@ local function retryPotionSearch(character)
             end
         end
 
+        -- Output the count of uninteracted potions to the console
         print("Uninteracted Gems: " .. gemCount .. ", Speed Potions: " .. speedPotionCount .. ", Ultimate Potions: " .. ultimatePotionCount .. ", Luck Potions: " .. luckPotionCount)
     end
 end
@@ -120,9 +128,6 @@ end
 local function onCharacterAdded(newCharacter)
     -- Wait for the Humanoid to be loaded before starting interaction
     newCharacter:WaitForChild("Humanoid")
-
-    -- Store the original position when the script is activated
-    originalPosition = newCharacter.PrimaryPart.CFrame
 
     -- Start teleporting and interacting with potions
     coroutine.wrap(function()
