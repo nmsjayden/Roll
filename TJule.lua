@@ -16,8 +16,12 @@ local function togglePause()
     paused = not paused
     if paused then
         print("Script paused.")
+        -- Disable noclip when paused
+        disableCollision(player.Character, true)
     else
         print("Script resumed.")
+        -- Enable noclip when resumed (if potions are still being found)
+        disableCollision(player.Character, false)
     end
 end
 
@@ -61,6 +65,9 @@ local function teleportToPotionAndInteract(character)
             -- Reset the flag when new potions are found
             returnedToOriginalPosition = false
 
+            -- Enable noclip when potions are found
+            disableCollision(character, false)
+
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
             local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
@@ -77,7 +84,9 @@ local function teleportToPotionAndInteract(character)
         else
             -- If no potions are found and we haven't returned to the original position yet
             if not returnedToOriginalPosition and originalPosition then
+                -- Disable noclip when no potions are found and return to original position
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
+                disableCollision(character, true)
                 returnedToOriginalPosition = true
                 print("No more potions found. Returned to original position.")
             end
@@ -87,13 +96,13 @@ local function teleportToPotionAndInteract(character)
 end
 
 -- Function to disable collision (noclip) for the character
-local function disableCollision(character)
+local function disableCollision(character, disable)
     RunService.Stepped:Connect(function()
         if paused then return end  -- Skip if paused
         for _, v in pairs(character:GetChildren()) do
             if v:IsA("BasePart") then
                 pcall(function()
-                    v.CanCollide = false
+                    v.CanCollide = not disable  -- Set CanCollide to false for noclip, true to disable noclip
                 end)
             end
         end
@@ -111,7 +120,7 @@ local function onCharacterAdded(newCharacter)
     end)()
 
     -- Disable collisions for the character
-    disableCollision(newCharacter)
+    disableCollision(newCharacter, false)
 end
 
 -- Listen for character reset (re-apply teleportation and collision logic after reset)
