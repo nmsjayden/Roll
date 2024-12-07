@@ -1,16 +1,12 @@
-For the Gem script id recommend having noclip on. I will later combine these two scripts into one lame ahh GUI.
+**Digitized-Moon Hub out now!!**
+
+✔️*Main Script*✔️:     
+loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Moon%20hub.lua"))();
+  
  
-✔️Main Script✔️:     
-loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Jule.lua"))();
- 
- 
-💎Gem Teleport Script💎:     
-loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/TJule.lua"))();
- 
- 
-🦃Crafting RNG Teleport Script🦃:
+🦃*Crafting RNG Auto-Mine Script*🦃:
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Crafting%20RNG%20teleport.lua"))();
  
  
-⚠️Testing Script⚠️:     
+⚠️*Testing Script*⚠️:     
 loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Testing.lua"))();
