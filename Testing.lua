@@ -109,7 +109,7 @@ local function saveAuraListToFile()
 
     Library:Notify{
         Title = "Aura List Saved",
-        Content = "Aura list has been saved to: " .. filePath,
+        Content = "Aura list has been automatically saved.",
         Duration = 6
     }
 end
@@ -197,6 +197,8 @@ Tabs.Main:CreateToggle("Quick Roll Toggle", {
     Callback = toggleScript
 })
 
+ 
+ 
 -- Create Subheading "Teleport Toggle" in Main tab
 Tabs.Main:CreateParagraph("TeleportToggleSubheading", {
     Title = "Teleport Toggle",
@@ -245,6 +247,7 @@ Tabs.Main:CreateToggle("TeleportScriptToggle", {
     Callback = toggleTeleportScript
 })
 
+
 -- Create Subheading "Aura List Config" in Main tab
 Tabs.Main:CreateParagraph("AuraListConfigSubheading", {
     Title = "Aura List Config",
@@ -270,32 +273,45 @@ local function addOrRemoveAura()
         local found = false
         for i, v in ipairs(aurasToDelete) do
             if v == auraName then
-                table.remove(aurasToDelete, i)  -- Remove the aura
+                -- Remove it if found
+                table.remove(aurasToDelete, i)
+                Library:Notify{
+                    Title = "Aura Removed",
+                    Content = "Aura '" .. auraName .. "' has been removed from the list.",
+                    Duration = 4
+                }
                 found = true
                 break
             end
         end
         
         if not found then
-            table.insert(aurasToDelete, auraName)  -- Add the aura
+            -- Add the aura if not found
+            table.insert(aurasToDelete, auraName)
+            Library:Notify{
+                Title = "Aura Added",
+                Content = "Aura '" .. auraName .. "' has been added to the list.",
+                Duration = 4
+            }
         end
 
-        updateAuraList()  -- Update the dropdown list to reflect changes
+        -- Save the updated list automatically
+        saveAuraListToFile()
+        updateAuraList()
+    else
+        Library:Notify{
+            Title = "Invalid Input",
+            Content = "Please enter a valid aura name.",
+            Duration = 4
+        }
     end
 end
 
--- Create Add/Remove button
+-- Create Add/Remove Aura button (combined into one)
 Tabs.Main:CreateButton{
     Title = "Add/Remove Aura",
-    Description = "Add or remove the aura from the list.",
+    Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
-}
-
--- Save button to save the updated aura list to the file
-Tabs.Settings:CreateButton{
-    Title = "Save Aura List to File",
-    Description = "Save the current aura list to the file.",
-    Callback = saveAuraListToFile
 }
 
 -- Interface and save managers
@@ -316,4 +332,3 @@ Library:Notify{
 }
 
 SaveManager:LoadAutoloadConfig()
-updateAuraList()
