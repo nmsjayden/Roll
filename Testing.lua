@@ -304,6 +304,13 @@ Tabs.Main:CreateButton{
     Description = "Adds or removes the aura from the list of auras to delete.",
     Callback = addOrRemoveAura
 }
+-- Add a blank box at the bottom of the Main tab
+Tabs.Main:CreateParagraph("BlankBox", {
+    Title = "",
+    Content = "",
+    TitleAlignment = "Middle",
+    ContentAlignment = "Middle"
+})
 
 -- Interface and save managers
 InterfaceManager:SetLibrary(Library)
