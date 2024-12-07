@@ -4,12 +4,14 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
+-- Flag to pause or unpause the script
+local paused = false
+
 -- Variables to store the original position
 local originalPosition = nil
 local returnedToOriginalPosition = false
-local paused = false
 
--- Flag to pause or unpause the script
+-- Function to toggle the pause state
 local function togglePause()
     paused = not paused
     if paused then
@@ -48,7 +50,14 @@ local function teleportToPotionAndInteract(character)
             continue
         end
 
+        -- If the original position isn't set, save it
+        if not originalPosition then
+            originalPosition = character.PrimaryPart.Position
+            print("Saved original position: (" .. math.round(originalPosition.X) .. ", " .. math.round(originalPosition.Y) .. ", " .. math.round(originalPosition.Z) .. ")")
+        end
+
         local potion = findNearestPotion(character)
+
         if potion then
             -- Reset the returned flag since we found a new potion
             returnedToOriginalPosition = false
@@ -71,7 +80,7 @@ local function teleportToPotionAndInteract(character)
             if not returnedToOriginalPosition and originalPosition then
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
                 returnedToOriginalPosition = true
-                print("No more potions found. Returned to original position: " .. math.floor(originalPosition.X) .. ", " .. math.floor(originalPosition.Y) .. ", " .. math.floor(originalPosition.Z))
+                print("No more potions found. Returned to original position.")
             end
         end
 
@@ -93,7 +102,7 @@ local function disableCollision(character)
     end)
 end
 
--- Function to enable collision when no potions are found
+-- Function to enable collision when no gems are found
 local function enableCollision(character)
     RunService.Stepped:Connect(function()
         if paused then return end  -- Skip if paused
@@ -112,12 +121,6 @@ local function onCharacterAdded(newCharacter)
     -- Wait for the Humanoid to be loaded before starting interaction
     newCharacter:WaitForChild("Humanoid")
 
-    -- Save original position on script start
-    if not originalPosition then
-        originalPosition = newCharacter.PrimaryPart.Position
-        print("Saved original position: " .. math.floor(originalPosition.X) .. ", " .. math.floor(originalPosition.Y) .. ", " .. math.floor(originalPosition.Z))
-    end
-
     -- Start teleporting and interacting with potions
     coroutine.wrap(function()
         teleportToPotionAndInteract(newCharacter)
@@ -128,8 +131,8 @@ local function onCharacterAdded(newCharacter)
         retryPotionSearch(newCharacter)
     end)()
 
-    -- Disable collisions for the character when potions are found
-    disableCollision(newCharacter)
+    -- Enable collisions for the character when no potions are found
+    enableCollision(newCharacter)
 end
 
 -- Listen for character reset (re-apply teleportation and collision logic after reset)
