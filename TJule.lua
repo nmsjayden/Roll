@@ -76,12 +76,18 @@ local function teleportToPotionAndInteract(character)
                     break
                 end
             end
+
+            -- Enable noclip (collision disabled) when potions are found
+            disableCollision(character, true)
         else
             -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
                 returnedToOriginalPosition = true
                 print("No more potions found. Returned to original position.")
+
+                -- Disable noclip (collision enabled) when no potions are found
+                disableCollision(character, false)
             end
         end
 
@@ -89,14 +95,14 @@ local function teleportToPotionAndInteract(character)
     end
 end
 
--- Function to disable collision (noclip) for the character
-local function disableCollision(character)
+-- Function to disable or enable collision (noclip) for the character
+local function disableCollision(character, enable)
     RunService.Stepped:Connect(function()
         if paused then return end  -- Skip if paused
         for _, v in pairs(character:GetChildren()) do
             if v:IsA("BasePart") then
                 pcall(function()
-                    v.CanCollide = false
+                    v.CanCollide = not enable  -- Set CanCollide to false if enabling noclip, true if disabling it
                 end)
             end
         end
@@ -114,7 +120,7 @@ local function onCharacterAdded(newCharacter)
     end)()
 
     -- Disable collisions for the character
-    disableCollision(newCharacter)
+    disableCollision(newCharacter, true)  -- Start with noclip enabled when potions are being searched
 end
 
 -- Listen for character reset (re-apply teleportation and collision logic after reset)
