@@ -4,24 +4,19 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Flag to pause or unpause the script
-local paused = false
-
 -- Variables to store the original position and rotation
 local originalPosition = nil
+local originalRotation = nil
 local returnedToOriginalPosition = false
+local paused = false
 
--- Function to toggle the pause state
+-- Flag to pause or unpause the script
 local function togglePause()
     paused = not paused
     if paused then
         print("Script paused.")
-        -- Disable noclip when paused
-        disableCollision(player.Character, true)
     else
         print("Script resumed.")
-        -- Enable noclip when resumed (if potions are still being found)
-        disableCollision(player.Character, false)
     end
 end
 
@@ -51,22 +46,13 @@ local function teleportToPotionAndInteract(character)
     while true do
         if paused then
             wait(1)  -- Pause the loop for a second before checking again if paused
-            return -- Skip to the next iteration if paused
-        end
-
-        -- Save original position when it's first encountered
-        if not originalPosition then
-            originalPosition = character.PrimaryPart.Position
-            print("Saved original position:", originalPosition.X, originalPosition.Y, originalPosition.Z)
+            continue
         end
 
         local potion = findNearestPotion(character)
         if potion then
-            -- Reset the flag when new potions are found
+            -- Reset the returned flag since we found a new potion
             returnedToOriginalPosition = false
-
-            -- Enable noclip when potions are found
-            disableCollision(character, false)
 
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
             local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
@@ -82,27 +68,41 @@ local function teleportToPotionAndInteract(character)
                 end
             end
         else
-            -- If no potions are found and we haven't returned to the original position yet
+            -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
-                -- Disable noclip when no potions are found and return to original position
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
-                disableCollision(character, true)
+                character:SetPrimaryPartCFrame(CFrame.new(originalPosition, originalRotation))  -- Set the original rotation too
                 returnedToOriginalPosition = true
-                print("No more potions found. Returned to original position.")
+                print("No more potions found. Returned to original position: " .. math.floor(originalPosition.X) .. ", " .. math.floor(originalPosition.Y) .. ", " .. math.floor(originalPosition.Z))
             end
         end
+
         wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
 end
 
 -- Function to disable collision (noclip) for the character
-local function disableCollision(character, disable)
+local function disableCollision(character)
     RunService.Stepped:Connect(function()
         if paused then return end  -- Skip if paused
         for _, v in pairs(character:GetChildren()) do
             if v:IsA("BasePart") then
                 pcall(function()
-                    v.CanCollide = not disable  -- Set CanCollide to false for noclip, true to disable noclip
+                    v.CanCollide = false
+                end)
+            end
+        end
+    end)
+end
+
+-- Function to enable collision when no potions are found
+local function enableCollision(character)
+    RunService.Stepped:Connect(function()
+        if paused then return end  -- Skip if paused
+        for _, v in pairs(character:GetChildren()) do
+            if v:IsA("BasePart") then
+                pcall(function()
+                    v.CanCollide = true
                 end)
             end
         end
@@ -114,13 +114,25 @@ local function onCharacterAdded(newCharacter)
     -- Wait for the Humanoid to be loaded before starting interaction
     newCharacter:WaitForChild("Humanoid")
 
+    -- Save original position and rotation on script start
+    if not originalPosition then
+        originalPosition = newCharacter.PrimaryPart.Position
+        originalRotation = newCharacter.PrimaryPart.CFrame - newCharacter.PrimaryPart.Position
+        print("Saved original position: " .. math.floor(originalPosition.X) .. ", " .. math.floor(originalPosition.Y) .. ", " .. math.floor(originalPosition.Z))
+    end
+
     -- Start teleporting and interacting with potions
     coroutine.wrap(function()
         teleportToPotionAndInteract(newCharacter)
     end)()
 
-    -- Disable collisions for the character
-    disableCollision(newCharacter, false)
+    -- Start retrying potion search
+    coroutine.wrap(function()
+        retryPotionSearch(newCharacter)
+    end)()
+
+    -- Disable collisions for the character when potions are found
+    disableCollision(newCharacter)
 end
 
 -- Listen for character reset (re-apply teleportation and collision logic after reset)
