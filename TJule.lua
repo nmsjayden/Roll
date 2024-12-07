@@ -4,9 +4,8 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Variables to store the original position and rotation
+-- Variables to store the original position
 local originalPosition = nil
-local originalRotation = nil
 local returnedToOriginalPosition = false
 local paused = false
 
@@ -71,7 +70,6 @@ local function teleportToPotionAndInteract(character)
             -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
-                character:SetPrimaryPartCFrame(CFrame.new(originalPosition, originalRotation))  -- Set the original rotation too
                 returnedToOriginalPosition = true
                 print("No more potions found. Returned to original position: " .. math.floor(originalPosition.X) .. ", " .. math.floor(originalPosition.Y) .. ", " .. math.floor(originalPosition.Z))
             end
@@ -114,10 +112,9 @@ local function onCharacterAdded(newCharacter)
     -- Wait for the Humanoid to be loaded before starting interaction
     newCharacter:WaitForChild("Humanoid")
 
-    -- Save original position and rotation on script start
+    -- Save original position on script start
     if not originalPosition then
         originalPosition = newCharacter.PrimaryPart.Position
-        originalRotation = newCharacter.PrimaryPart.CFrame - newCharacter.PrimaryPart.Position
         print("Saved original position: " .. math.floor(originalPosition.X) .. ", " .. math.floor(originalPosition.Y) .. ", " .. math.floor(originalPosition.Z))
     end
 
