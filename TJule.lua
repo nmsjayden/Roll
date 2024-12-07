@@ -4,9 +4,22 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Variables to store the original position
+-- Flag to pause or unpause the script
+local paused = false
+
+-- Variables to store the original position and the state of returning
 local originalPosition = nil
 local returnedToOriginalPosition = false
+
+-- Function to toggle the pause state
+local function togglePause()
+    paused = not paused
+    if paused then
+        print("Script paused.")
+    else
+        print("Script resumed.")
+    end
+end
 
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
 local function findNearestPotion(character)
@@ -32,15 +45,18 @@ end
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
     while true do
+        if paused then
+            wait(1)  -- Pause the loop for a second before checking again if paused
+            continue
+        end
+
         -- If the original position isn't set, save it
         if not originalPosition then
             originalPosition = character.PrimaryPart.Position
-            print("Saved original position.")
+            print("Saved original position: " .. math.round(originalPosition.X) .. ", " .. math.round(originalPosition.Y) .. ", " .. math.round(originalPosition.Z))
         end
 
-        -- Find the nearest potion
         local potion = findNearestPotion(character)
-
         if potion then
             -- Reset the returned flag since we found a new potion
             returnedToOriginalPosition = false
@@ -50,11 +66,13 @@ local function teleportToPotionAndInteract(character)
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the potion
+            local interacted = false
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
                     -- Trigger the ProximityPrompt interaction
                     prompt:InputHoldBegin()
                     prompt:InputHoldEnd()
+                    interacted = true
                     break
                 end
             end
@@ -74,6 +92,7 @@ end
 -- Function to disable collision (noclip) for the character
 local function disableCollision(character)
     RunService.Stepped:Connect(function()
+        if paused then return end  -- Skip if paused
         for _, v in pairs(character:GetChildren()) do
             if v:IsA("BasePart") then
                 pcall(function()
@@ -105,3 +124,8 @@ player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then
     onCharacterAdded(player.Character)
 end
+
+-- Expose the togglePause function to be used externally
+return {
+    togglePause = togglePause
+}
