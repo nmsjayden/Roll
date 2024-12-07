@@ -7,7 +7,7 @@ local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 -- Flag to pause or unpause the script
 local paused = false
 
--- Variables to store the original position, the state of returning, and noclip status
+-- Variables to store the original position and the state of returning
 local originalPosition = nil
 local returnedToOriginalPosition = false
 local noclipEnabled = false
@@ -17,10 +17,9 @@ local function togglePause()
     paused = not paused
     if paused then
         print("Script paused.")
-        disableNoclip(player.Character)
+        noclipEnabled = false  -- Disable noclip when paused
     else
         print("Script resumed.")
-        enableNoclip(player.Character)
     end
 end
 
@@ -66,8 +65,8 @@ local function teleportToPotionAndInteract(character)
 
             -- Enable noclip when a potion is found
             if not noclipEnabled then
-                enableNoclip(character)
                 noclipEnabled = true
+                disableCollision(character)  -- Enable noclip
             end
 
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
@@ -91,12 +90,12 @@ local function teleportToPotionAndInteract(character)
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
                 returnedToOriginalPosition = true
                 print("No more potions found. Returned to original position.")
+            end
 
-                -- Disable noclip when no potions are found
-                if noclipEnabled then
-                    disableNoclip(character)
-                    noclipEnabled = false
-                end
+            -- Disable noclip if no potions are found
+            if noclipEnabled then
+                noclipEnabled = false
+                enableCollision(character)  -- Disable noclip
             end
         end
 
@@ -104,43 +103,32 @@ local function teleportToPotionAndInteract(character)
     end
 end
 
--- Function to disable noclip (collisions for the character)
-local function disableNoclip(character)
-    RunService.Stepped:Connect(function()
-        if character and not paused then
-            for _, v in pairs(character:GetChildren()) do
-                if v:IsA("BasePart") then
-                    pcall(function()
-                        v.CanCollide = true
-                    end)
-                end
-            end
-        end
-    end)
-end
-
--- Function to enable noclip (disable collisions for the character)
-local function enableNoclip(character)
-    RunService.Stepped:Connect(function()
-        if character and not paused then
-            for _, v in pairs(character:GetChildren()) do
-                if v:IsA("BasePart") then
-                    pcall(function()
-                        v.CanCollide = false
-                    end)
-                end
-            end
-        end
-    end)
-end
-
--- Function to disable collision (noclip) for the character when the script is paused
+-- Function to disable collision (noclip) for the character
 local function disableCollision(character)
-    if not paused then
-        enableNoclip(character)
-    else
-        disableNoclip(character)
-    end
+    RunService.Stepped:Connect(function()
+        if paused then return end  -- Skip if paused
+        for _, v in pairs(character:GetChildren()) do
+            if v:IsA("BasePart") then
+                pcall(function()
+                    v.CanCollide = false
+                end)
+            end
+        end
+    end)
+end
+
+-- Function to re-enable collision for the character
+local function enableCollision(character)
+    RunService.Stepped:Connect(function()
+        if paused then return end  -- Skip if paused
+        for _, v in pairs(character:GetChildren()) do
+            if v:IsA("BasePart") then
+                pcall(function()
+                    v.CanCollide = true
+                end)
+            end
+        end
+    end)
 end
 
 -- Ensure teleporting starts after character is loaded
