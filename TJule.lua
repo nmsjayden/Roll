@@ -32,9 +32,10 @@ end
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
     while true do
-        -- If the original position isn't set, save it
+        -- If the original position isn't set, save it and print to console
         if not originalPosition then
             originalPosition = character.PrimaryPart.Position
+            print("Saved original position: " .. tostring(originalPosition))
         end
 
         -- Find the nearest potion
@@ -49,26 +50,20 @@ local function teleportToPotionAndInteract(character)
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
             -- Immediately interact with a ProximityPrompt near the potion
-            local interacted = false
             for _, prompt in pairs(workspace:GetDescendants()) do
                 if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
-                    -- Trigger the ProximityPrompt interaction as quickly as possible
+                    -- Trigger the ProximityPrompt interaction
                     prompt:InputHoldBegin()
-                    prompt:InputHoldEnd() -- Instantly trigger the interaction without delay
-                    interacted = true
+                    prompt:InputHoldEnd()
                     break
                 end
-            end
-
-            if interacted then
-                print("Successfully interacted with the ProximityPrompt!")
             end
         else
             -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
                 character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
                 returnedToOriginalPosition = true
-                print("No more potions found. Returned to original position.")
+                print("No more potions found. Returned to original position: " .. tostring(originalPosition))
             end
         end
 
