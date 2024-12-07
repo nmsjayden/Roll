@@ -4,7 +4,7 @@ local InterfaceManager = loadstring(game:HttpGetAsync("https://raw.githubusercon
 
 local Window = Library:CreateWindow{
     Title = `Digitized-Moon Hub {Library.Version}`,
-    SubTitle = "by Actual Master Oogway",
+    SubTitle = "by Aro Moon",
     TabWidth = 160,
     Size = UDim2.fromOffset(830, 525),
     Resize = true,
