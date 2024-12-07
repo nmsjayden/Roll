@@ -175,6 +175,40 @@ task.spawn(function()
     end
 end)
 
+-- Persistent Teleport Script Toggle
+local teleportScriptEnabled = false
+
+local function toggleTeleportPersistence(state)
+    teleportScriptEnabled = state
+    if state then
+        local scriptToExecute = [[
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/nmsjayden/Roll/refs/heads/main/Moon%20hub.lua"))()
+        ]]
+
+        if syn and syn.queue_on_teleport then
+            syn.queue_on_teleport(scriptToExecute)
+        elseif queue_on_teleport then
+            queue_on_teleport(scriptToExecute)
+        else
+            local teleportFile = "teleportScript.lua"
+            writefile(teleportFile, scriptToExecute)
+            Library:Notify{ Title = "Warning", Content = "Fallback script saved.", Duration = 8 }
+
+            local Players = game:GetService("Players")
+            Players.LocalPlayer.OnTeleport:Connect(function(teleportState)
+                if teleportState == Enum.TeleportState.Started then
+                    loadstring(readfile(teleportFile))()
+                end
+            end)
+        end
+
+        Library:Notify{ Title = "Teleport Persistence Enabled", Content = "Script persists on teleport.", Duration = 5 }
+    else
+        Library:Notify{ Title = "Teleport Persistence Disabled", Content = "Script won't persist.", Duration = 5 }
+    end
+end
+
+Tabs.Settings:CreateToggle("TeleportPersistenceToggle", { Title = "Enable Teleport Persistence", Default = false, Callback = toggleTeleportPersistence })
 -- Create a blank box at the top of the Main tab
 Tabs.Main:CreateParagraph("TopBlankBox", {
     Title = "",
