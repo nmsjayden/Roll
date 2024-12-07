@@ -17,9 +17,19 @@ local function togglePause()
     paused = not paused
     if paused then
         print("Script paused.")
-        noclipEnabled = false  -- Disable noclip when paused
     else
         print("Script resumed.")
+    end
+end
+
+-- Function to enable or disable noclip
+local function setNoclip(character, enable)
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            pcall(function()
+                part.CanCollide = not enable
+            end)
+        end
     end
 end
 
@@ -49,54 +59,56 @@ local function teleportToPotionAndInteract(character)
     while true do
         if paused then
             wait(1)  -- Pause the loop for a second before checking again if paused
-        else
-            -- If the original position isn't set, save it
-            if not originalPosition then
-                originalPosition = character.PrimaryPart.Position
-                print("Saved original position: " .. math.round(originalPosition.X) .. ", " .. math.round(originalPosition.Y) .. ", " .. math.round(originalPosition.Z))
+            continue
+        end
+
+        -- If the original position isn't set, save it
+        if not originalPosition then
+            originalPosition = character.PrimaryPart.Position
+            print("Saved original position: " .. math.round(originalPosition.X) .. ", " .. math.round(originalPosition.Y) .. ", " .. math.round(originalPosition.Z))
+        end
+
+        local potion = findNearestPotion(character)
+        if potion then
+            -- Reset the returned flag since we found a new potion
+            returnedToOriginalPosition = false
+
+            -- Enable noclip because a potion was found
+            if not noclipEnabled then
+                setNoclip(character, true)
+                noclipEnabled = true
             end
 
-            local potion = findNearestPotion(character)
-            if potion then
-                -- Reset the returned flag since we found a new potion
-                returnedToOriginalPosition = false
+            -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
+            local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
+            character:SetPrimaryPartCFrame(CFrame.new(newPosition))
 
-                -- Enable noclip when a potion is found
-                if not noclipEnabled then
-                    noclipEnabled = true
-                    disableCollision(character)  -- Enable noclip
+            -- Immediately interact with a ProximityPrompt near the potion
+            local interacted = false
+            for _, prompt in pairs(workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
+                    -- Trigger the ProximityPrompt interaction
+                    prompt:InputHoldBegin()
+                    prompt:InputHoldEnd()
+                    interacted = true
+                    break
                 end
+            end
+        else
+            -- If no potions are found and we haven't yet returned to the original position, teleport back
+            if not returnedToOriginalPosition and originalPosition then
+                character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
+                returnedToOriginalPosition = true
+                print("No more potions found. Returned to original position.")
 
-                -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
-                local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
-                character:SetPrimaryPartCFrame(CFrame.new(newPosition))
-
-                -- Immediately interact with a ProximityPrompt near the potion
-                local interacted = false
-                for _, prompt in pairs(workspace:GetDescendants()) do
-                    if prompt:IsA("ProximityPrompt") and (prompt.Parent.Position - character.PrimaryPart.Position).Magnitude < 10 then
-                        -- Trigger the ProximityPrompt interaction
-                        prompt:InputHoldBegin()
-                        prompt:InputHoldEnd()
-                        interacted = true
-                        break
-                    end
-                end
-            else
-                -- If no potions are found and we haven't yet returned to the original position, teleport back
-                if not returnedToOriginalPosition and originalPosition then
-                    character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
-                    returnedToOriginalPosition = true
-                    print("No more potions found. Returned to original position.")
-                end
-
-                -- Disable noclip if no potions are found
+                -- Disable noclip because no potion was found
                 if noclipEnabled then
+                    setNoclip(character, false)
                     noclipEnabled = false
-                    enableCollision(character)  -- Disable noclip
                 end
             end
         end
+
         wait(0.1) -- Try again in 0.1 seconds for fast interaction without delay
     end
 end
@@ -109,20 +121,6 @@ local function disableCollision(character)
             if v:IsA("BasePart") then
                 pcall(function()
                     v.CanCollide = false
-                end)
-            end
-        end
-    end)
-end
-
--- Function to re-enable collision for the character
-local function enableCollision(character)
-    RunService.Stepped:Connect(function()
-        if paused then return end  -- Skip if paused
-        for _, v in pairs(character:GetChildren()) do
-            if v:IsA("BasePart") then
-                pcall(function()
-                    v.CanCollide = true
                 end)
             end
         end
