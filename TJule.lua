@@ -4,9 +4,8 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Variables to store the original position and rotation (facing direction)
+-- Variables to store the original position
 local originalPosition = nil
-local originalRotation = nil
 local returnedToOriginalPosition = false
 
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
@@ -33,11 +32,10 @@ end
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
     while true do
-        -- If the original position isn't set, save it along with facing direction
+        -- If the original position isn't set, save it
         if not originalPosition then
             originalPosition = character.PrimaryPart.Position
-            originalRotation = character.PrimaryPart.CFrame.Rotation
-            print("Saved original position and facing direction.")
+            print("Saved original position.")
         end
 
         -- Find the nearest potion
@@ -63,9 +61,9 @@ local function teleportToPotionAndInteract(character)
         else
             -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
-                character:SetPrimaryPartCFrame(CFrame.new(originalPosition) * CFrame.fromEulerAnglesXYZ(0, originalRotation.Y, 0))
+                character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
                 returnedToOriginalPosition = true
-                print("No more potions found. Returned to original position and facing direction.")
+                print("No more potions found. Returned to original position.")
             end
         end
 
