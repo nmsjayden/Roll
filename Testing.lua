@@ -175,6 +175,14 @@ task.spawn(function()
     end
 end)
 
+-- Create a blank box at the top of the Main tab
+Tabs.Main:CreateParagraph("TopBlankBox", {
+    Title = "",
+    Content = "",
+    TitleAlignment = "Middle",
+    ContentAlignment = "Middle"
+})
+
 -- Create Subheading "Quick Roll" in Main tab
 Tabs.Main:CreateParagraph("QuickRollSubheading", {
     Title = "Quick Roll",
