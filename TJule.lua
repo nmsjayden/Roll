@@ -4,9 +4,9 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 
--- Variables to store the original position and orientation (facing direction)
+-- Variables to store the original position and rotation (facing direction)
 local originalPosition = nil
-local originalOrientation = nil
+local originalRotation = nil
 local returnedToOriginalPosition = false
 
 -- Function to find the nearest potion (Gem, Speed Potion, Ultimate Potion, Luck Potion)
@@ -33,11 +33,11 @@ end
 -- Function to teleport to the potion and instantly interact with its ProximityPrompt
 local function teleportToPotionAndInteract(character)
     while true do
-        -- If the original position and orientation aren't set, save them
+        -- If the original position isn't set, save it along with facing direction
         if not originalPosition then
             originalPosition = character.PrimaryPart.Position
-            originalOrientation = character.PrimaryPart.CFrame.LookVector -- Save the facing direction
-            print("Saved original position: " .. tostring(originalPosition) .. ", Facing direction: " .. tostring(originalOrientation))
+            originalRotation = character.PrimaryPart.CFrame.Rotation
+            print("Saved original position and facing direction.")
         end
 
         -- Find the nearest potion
@@ -63,10 +63,9 @@ local function teleportToPotionAndInteract(character)
         else
             -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
-                -- Teleport back to the original position and facing direction
-                character:SetPrimaryPartCFrame(CFrame.new(originalPosition) * CFrame.Angles(0, math.atan2(originalOrientation.X, originalOrientation.Z), 0))
+                character:SetPrimaryPartCFrame(CFrame.new(originalPosition) * CFrame.fromEulerAnglesXYZ(0, originalRotation.Y, 0))
                 returnedToOriginalPosition = true
-                print("No more potions found. Returned to original position: " .. tostring(originalPosition) .. ", Facing direction: " .. tostring(originalOrientation))
+                print("No more potions found. Returned to original position and facing direction.")
             end
         end
 
