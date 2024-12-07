@@ -7,17 +7,20 @@ local potionsFolder = workspace:WaitForChild("Game"):WaitForChild("Potions")
 -- Flag to pause or unpause the script
 local paused = false
 
--- Variables to store the original position and the state of returning
+-- Variables to store the original position, the state of returning, and noclip status
 local originalPosition = nil
 local returnedToOriginalPosition = false
+local noclipEnabled = false
 
 -- Function to toggle the pause state
 local function togglePause()
     paused = not paused
     if paused then
         print("Script paused.")
+        disableNoclip(player.Character)
     else
         print("Script resumed.")
+        enableNoclip(player.Character)
     end
 end
 
@@ -61,6 +64,12 @@ local function teleportToPotionAndInteract(character)
             -- Reset the returned flag since we found a new potion
             returnedToOriginalPosition = false
 
+            -- Enable noclip when a potion is found
+            if not noclipEnabled then
+                enableNoclip(character)
+                noclipEnabled = true
+            end
+
             -- Teleport to the potion's position, slightly raised to avoid colliding with the ground
             local newPosition = potion.Position + Vector3.new(0, 5, 0) -- Adjust height to 5 studs above the potion's position
             character:SetPrimaryPartCFrame(CFrame.new(newPosition))
@@ -76,9 +85,6 @@ local function teleportToPotionAndInteract(character)
                     break
                 end
             end
-
-            -- Enable noclip (collision disabled) when potions are found
-            disableCollision(character, true)
         else
             -- If no potions are found and we haven't yet returned to the original position, teleport back
             if not returnedToOriginalPosition and originalPosition then
@@ -86,8 +92,11 @@ local function teleportToPotionAndInteract(character)
                 returnedToOriginalPosition = true
                 print("No more potions found. Returned to original position.")
 
-                -- Disable noclip (collision enabled) when no potions are found
-                disableCollision(character, false)
+                -- Disable noclip when no potions are found
+                if noclipEnabled then
+                    disableNoclip(character)
+                    noclipEnabled = false
+                end
             end
         end
 
@@ -95,18 +104,43 @@ local function teleportToPotionAndInteract(character)
     end
 end
 
--- Function to disable or enable collision (noclip) for the character
-local function disableCollision(character, enable)
+-- Function to disable noclip (collisions for the character)
+local function disableNoclip(character)
     RunService.Stepped:Connect(function()
-        if paused then return end  -- Skip if paused
-        for _, v in pairs(character:GetChildren()) do
-            if v:IsA("BasePart") then
-                pcall(function()
-                    v.CanCollide = not enable  -- Set CanCollide to false if enabling noclip, true if disabling it
-                end)
+        if character and not paused then
+            for _, v in pairs(character:GetChildren()) do
+                if v:IsA("BasePart") then
+                    pcall(function()
+                        v.CanCollide = true
+                    end)
+                end
             end
         end
     end)
+end
+
+-- Function to enable noclip (disable collisions for the character)
+local function enableNoclip(character)
+    RunService.Stepped:Connect(function()
+        if character and not paused then
+            for _, v in pairs(character:GetChildren()) do
+                if v:IsA("BasePart") then
+                    pcall(function()
+                        v.CanCollide = false
+                    end)
+                end
+            end
+        end
+    end)
+end
+
+-- Function to disable collision (noclip) for the character when the script is paused
+local function disableCollision(character)
+    if not paused then
+        enableNoclip(character)
+    else
+        disableNoclip(character)
+    end
 end
 
 -- Ensure teleporting starts after character is loaded
@@ -120,7 +154,7 @@ local function onCharacterAdded(newCharacter)
     end)()
 
     -- Disable collisions for the character
-    disableCollision(newCharacter, true)  -- Start with noclip enabled when potions are being searched
+    disableCollision(newCharacter)
 end
 
 -- Listen for character reset (re-apply teleportation and collision logic after reset)
